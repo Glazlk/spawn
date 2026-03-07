@@ -1,4 +1,5 @@
 import type { TemplateConfig } from "../domain.js"
+import { renderAgentLaunch } from "./agent.js"
 
 const renderEntrypointAutoUpdate = (): string =>
   `# 1) Keep Codex CLI up to date if requested (bun only)
@@ -203,4 +204,6 @@ export const renderEntrypointBackgroundTasks = (config: TemplateConfig): string 
 ${renderEntrypointAutoUpdate()}
 
 ${renderEntrypointClone(config)}
+
+${renderAgentLaunch(config)}
 ) &`
