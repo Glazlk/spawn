@@ -1,6 +1,7 @@
 import type * as CommandExecutor from "@effect/platform/CommandExecutor"
 import type { PlatformError } from "@effect/platform/Error"
-import type { Effect } from "effect"
+import { readFileSync } from "node:fs"
+import { Effect } from "effect"
 
 import { runCommandCapture, runCommandExitCode, runCommandWithExitCodes } from "./command-runner.js"
 
@@ -19,6 +20,122 @@ export type DockerAuthSpec = {
   readonly args: ReadonlyArray<string>
   readonly interactive: boolean
 }
+
+type DockerMountBinding = {
+  readonly source: string
+  readonly destination: string
+}
+
+const resolveEnvValue = (key: string): string | null => {
+  const value = process.env[key]?.trim()
+  return value && value.length > 0 ? value : null
+}
+
+const trimTrailingSlash = (value: string): string => value.replace(/[\\/]+$/u, "")
+
+const pathStartsWith = (candidate: string, prefix: string): boolean =>
+  candidate === prefix || candidate.startsWith(`${prefix}/`) || candidate.startsWith(`${prefix}\\`)
+
+const translatePathPrefix = (candidate: string, sourcePrefix: string, targetPrefix: string): string | null =>
+  pathStartsWith(candidate, sourcePrefix)
+    ? `${targetPrefix}${candidate.slice(sourcePrefix.length)}`
+    : null
+
+const resolveContainerProjectsRoot = (): string | null => {
+  const explicit = resolveEnvValue("DOCKER_GIT_PROJECTS_ROOT")
+  if (explicit !== null) {
+    return explicit
+  }
+
+  const home = resolveEnvValue("HOME") ?? resolveEnvValue("USERPROFILE")
+  return home === null ? null : `${trimTrailingSlash(home)}/.docker-git`
+}
+
+const resolveProjectsRootHostOverride = (): string | null => resolveEnvValue("DOCKER_GIT_PROJECTS_ROOT_HOST")
+
+const resolveCurrentContainerId = (): string | null => {
+  const fromEnv = resolveEnvValue("HOSTNAME")
+  if (fromEnv !== null) {
+    return fromEnv
+  }
+
+  try {
+    const fromHostnameFile = readFileSync("/etc/hostname", "utf8").trim()
+    return fromHostnameFile.length > 0 ? fromHostnameFile : null
+  } catch {
+    return null
+  }
+}
+
+const parseDockerInspectMounts = (raw: string): ReadonlyArray<DockerMountBinding> => {
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed.flatMap((item) => {
+      if (typeof item !== "object" || item === null) {
+        return []
+      }
+      const source = Reflect.get(item, "Source")
+      const destination = Reflect.get(item, "Destination")
+      return typeof source === "string" && typeof destination === "string"
+        ? [{ source, destination }]
+        : []
+    })
+  } catch {
+    return []
+  }
+}
+
+export const remapDockerBindHostPathFromMounts = (
+  hostPath: string,
+  mounts: ReadonlyArray<DockerMountBinding>
+): string => {
+  const match = mounts
+    .filter((mount) => pathStartsWith(hostPath, mount.destination))
+    .sort((left, right) => right.destination.length - left.destination.length)[0]
+
+  if (match === undefined) {
+    return hostPath
+  }
+
+  return `${match.source}${hostPath.slice(match.destination.length)}`
+}
+
+export const resolveDockerVolumeHostPath = (
+  cwd: string,
+  hostPath: string
+): Effect.Effect<string, never, CommandExecutor.CommandExecutor> =>
+  Effect.gen(function*(_) {
+    const containerProjectsRoot = resolveContainerProjectsRoot()
+    const hostProjectsRoot = resolveProjectsRootHostOverride()
+    if (containerProjectsRoot !== null && hostProjectsRoot !== null) {
+      const remapped = translatePathPrefix(hostPath, containerProjectsRoot, hostProjectsRoot)
+      if (remapped !== null) {
+        return remapped
+      }
+    }
+
+    const containerId = resolveCurrentContainerId()
+    if (containerId === null) {
+      return hostPath
+    }
+
+    const mountsJson = yield* _(
+      runCommandCapture(
+        {
+          cwd,
+          command: "docker",
+          args: ["inspect", containerId, "--format", "{{json .Mounts}}"]
+        },
+        [0],
+        () => new Error("docker inspect current container failed")
+      ).pipe(Effect.orElseSucceed(() => ""))
+    )
+
+    return remapDockerBindHostPathFromMounts(hostPath, parseDockerInspectMounts(mountsJson))
+  })
 
 export const resolveDefaultDockerUser = (): string | null => {
   const getUid = Reflect.get(process, "getuid")
@@ -93,11 +210,20 @@ export const runDockerAuth = <E>(
   okExitCodes: ReadonlyArray<number>,
   onFailure: (exitCode: number) => E
 ): Effect.Effect<void, E | PlatformError, CommandExecutor.CommandExecutor> =>
-  runCommandWithExitCodes(
-    { cwd: spec.cwd, command: "docker", args: buildDockerArgs(spec) },
-    okExitCodes,
-    onFailure
-  )
+  Effect.gen(function*(_) {
+    const hostPath = yield* _(resolveDockerVolumeHostPath(spec.cwd, spec.volume.hostPath))
+    yield* _(
+      runCommandWithExitCodes(
+        {
+          cwd: spec.cwd,
+          command: "docker",
+          args: buildDockerArgs({ ...spec, volume: { ...spec.volume, hostPath } })
+        },
+        okExitCodes,
+        onFailure
+      )
+    )
+  })
 
 // CHANGE: run a docker auth command and capture stdout
 // WHY: obtain tokens from container auth flows
@@ -114,11 +240,20 @@ export const runDockerAuthCapture = <E>(
   okExitCodes: ReadonlyArray<number>,
   onFailure: (exitCode: number) => E
 ): Effect.Effect<string, E | PlatformError, CommandExecutor.CommandExecutor> =>
-  runCommandCapture(
-    { cwd: spec.cwd, command: "docker", args: buildDockerArgs(spec) },
-    okExitCodes,
-    onFailure
-  )
+  Effect.gen(function*(_) {
+    const hostPath = yield* _(resolveDockerVolumeHostPath(spec.cwd, spec.volume.hostPath))
+    return yield* _(
+      runCommandCapture(
+        {
+          cwd: spec.cwd,
+          command: "docker",
+          args: buildDockerArgs({ ...spec, volume: { ...spec.volume, hostPath } })
+        },
+        okExitCodes,
+        onFailure
+      )
+    )
+  })
 
 // CHANGE: run a docker auth command and return the exit code
 // WHY: allow status checks without throwing
@@ -133,4 +268,13 @@ export const runDockerAuthCapture = <E>(
 export const runDockerAuthExitCode = (
   spec: DockerAuthSpec
 ): Effect.Effect<number, PlatformError, CommandExecutor.CommandExecutor> =>
-  runCommandExitCode({ cwd: spec.cwd, command: "docker", args: buildDockerArgs(spec) })
+  Effect.gen(function*(_) {
+    const hostPath = yield* _(resolveDockerVolumeHostPath(spec.cwd, spec.volume.hostPath))
+    return yield* _(
+      runCommandExitCode({
+        cwd: spec.cwd,
+        command: "docker",
+        args: buildDockerArgs({ ...spec, volume: { ...spec.volume, hostPath } })
+      })
+    )
+  })

@@ -115,6 +115,12 @@ This avoids `refresh_token` rotation issues that can happen when copying `auth.j
 Disable sharing (per-project auth):
 - Set `CODEX_SHARE_AUTH=0` in `.orch/env/project.env`.
 
+## Claude Code Defaults
+
+On container start, docker-git syncs Claude Code user settings under `$CLAUDE_CONFIG_DIR/settings.json`:
+- `permissions.defaultMode = "bypassPermissions"` so local disposable containers behave like docker-git Codex containers (no permission prompts).
+- Existing unrelated Claude settings are preserved.
+
 ## Playwright MCP (Chromium Sidecar)
 
 Enable during create/clone:

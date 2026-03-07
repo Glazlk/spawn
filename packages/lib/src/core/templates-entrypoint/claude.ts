@@ -34,6 +34,17 @@ mkdir -p "$CLAUDE_CONFIG_DIR" || true
 CLAUDE_HOME_DIR="__CLAUDE_HOME_DIR__"
 CLAUDE_HOME_JSON="__CLAUDE_HOME_JSON__"
 mkdir -p "$CLAUDE_HOME_DIR" || true
+CLAUDE_TOKEN_FILE="$CLAUDE_CONFIG_DIR/.oauth-token"
+CLAUDE_CREDENTIALS_FILE="$CLAUDE_CONFIG_DIR/.credentials.json"
+CLAUDE_NESTED_CREDENTIALS_FILE="$CLAUDE_CONFIG_DIR/.claude/.credentials.json"
+
+docker_git_prepare_claude_auth_mode() {
+  if [[ -s "$CLAUDE_TOKEN_FILE" ]]; then
+    rm -f "$CLAUDE_CREDENTIALS_FILE" "$CLAUDE_NESTED_CREDENTIALS_FILE" "$CLAUDE_HOME_DIR/.credentials.json" || true
+  fi
+}
+
+docker_git_prepare_claude_auth_mode
 
 docker_git_link_claude_file() {
   local source_path="$1"
@@ -61,17 +72,13 @@ docker_git_link_claude_home_file() {
 docker_git_link_claude_home_file ".oauth-token"
 docker_git_link_claude_home_file ".config.json"
 docker_git_link_claude_home_file ".claude.json"
-docker_git_link_claude_home_file ".credentials.json"
+if [[ ! -s "$CLAUDE_TOKEN_FILE" ]]; then
+  docker_git_link_claude_home_file ".credentials.json"
+fi
 docker_git_link_claude_file "$CLAUDE_CONFIG_DIR/.claude.json" "$CLAUDE_HOME_JSON"
 
-CLAUDE_TOKEN_FILE="$CLAUDE_CONFIG_DIR/.oauth-token"
-CLAUDE_CREDENTIALS_FILE="$CLAUDE_CONFIG_DIR/.credentials.json"
 docker_git_refresh_claude_oauth_token() {
   local token=""
-  if [[ -s "$CLAUDE_CREDENTIALS_FILE" ]]; then
-    unset CLAUDE_CODE_OAUTH_TOKEN || true
-    return 0
-  fi
   if [[ -f "$CLAUDE_TOKEN_FILE" ]]; then
     token="$(tr -d '\r\n' < "$CLAUDE_TOKEN_FILE")"
   fi
@@ -132,6 +139,53 @@ EOF
 }
 
 docker_git_ensure_claude_cli`
+
+const renderClaudePermissionSettingsConfig = (): string =>
+  String.raw`# Claude Code: keep permission settings in sync with docker-git defaults
+CLAUDE_PERMISSION_SETTINGS_FILE="$CLAUDE_CONFIG_DIR/settings.json"
+docker_git_sync_claude_permissions() {
+  CLAUDE_PERMISSION_SETTINGS_FILE="$CLAUDE_PERMISSION_SETTINGS_FILE" node - <<'NODE'
+const fs = require("node:fs")
+const path = require("node:path")
+
+const settingsPath = process.env.CLAUDE_PERMISSION_SETTINGS_FILE
+if (typeof settingsPath !== "string" || settingsPath.length === 0) {
+  process.exit(0)
+}
+
+const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value)
+
+let settings = {}
+try {
+  const raw = fs.readFileSync(settingsPath, "utf8")
+  const parsed = JSON.parse(raw)
+  settings = isRecord(parsed) ? parsed : {}
+} catch {
+  settings = {}
+}
+
+const currentPermissions = isRecord(settings.permissions) ? settings.permissions : {}
+const nextPermissions = {
+  ...currentPermissions,
+  defaultMode: "bypassPermissions"
+}
+const nextSettings = {
+  ...settings,
+  permissions: nextPermissions
+}
+
+if (JSON.stringify(settings) === JSON.stringify(nextSettings)) {
+  process.exit(0)
+}
+
+fs.mkdirSync(path.dirname(settingsPath), { recursive: true })
+fs.writeFileSync(settingsPath, JSON.stringify(nextSettings, null, 2) + "\n", { mode: 0o600 })
+NODE
+}
+
+docker_git_sync_claude_permissions
+chmod 0600 "$CLAUDE_PERMISSION_SETTINGS_FILE" 2>/dev/null || true
+chown 1000:1000 "$CLAUDE_PERMISSION_SETTINGS_FILE" 2>/dev/null || true`
 
 const renderClaudeMcpPlaywrightConfig = (): string =>
   String.raw`# Claude Code: keep Playwright MCP config in sync with container settings
@@ -295,11 +349,8 @@ set -euo pipefail
 CLAUDE_REAL_BIN="__CLAUDE_REAL_BIN__"
 CLAUDE_CONFIG_DIR="${"$"}{CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 CLAUDE_TOKEN_FILE="$CLAUDE_CONFIG_DIR/.oauth-token"
-CLAUDE_CREDENTIALS_FILE="$CLAUDE_CONFIG_DIR/.credentials.json"
 
-if [[ -s "$CLAUDE_CREDENTIALS_FILE" ]]; then
-  unset CLAUDE_CODE_OAUTH_TOKEN || true
-elif [[ -f "$CLAUDE_TOKEN_FILE" ]]; then
+if [[ -f "$CLAUDE_TOKEN_FILE" ]]; then
   CLAUDE_CODE_OAUTH_TOKEN="$(tr -d '\r\n' < "$CLAUDE_TOKEN_FILE")"
   export CLAUDE_CODE_OAUTH_TOKEN
 else
@@ -320,10 +371,7 @@ printf "export CLAUDE_CONFIG_DIR=%q\n" "$CLAUDE_CONFIG_DIR" >> "$CLAUDE_PROFILE"
 printf "export CLAUDE_AUTO_SYSTEM_PROMPT=%q\n" "$CLAUDE_AUTO_SYSTEM_PROMPT" >> "$CLAUDE_PROFILE"
 cat <<'EOF' >> "$CLAUDE_PROFILE"
 CLAUDE_TOKEN_FILE="${"$"}{CLAUDE_CONFIG_DIR:-$HOME/.claude}/.oauth-token"
-CLAUDE_CREDENTIALS_FILE="${"$"}{CLAUDE_CONFIG_DIR:-$HOME/.claude}/.credentials.json"
-if [[ -s "$CLAUDE_CREDENTIALS_FILE" ]]; then
-  unset CLAUDE_CODE_OAUTH_TOKEN || true
-elif [[ -f "$CLAUDE_TOKEN_FILE" ]]; then
+if [[ -f "$CLAUDE_TOKEN_FILE" ]]; then
   export CLAUDE_CODE_OAUTH_TOKEN="$(tr -d '\r\n' < "$CLAUDE_TOKEN_FILE")"
 else
   unset CLAUDE_CODE_OAUTH_TOKEN || true
@@ -340,6 +388,7 @@ export const renderEntrypointClaudeConfig = (config: TemplateConfig): string =>
   [
     renderClaudeAuthConfig(config),
     renderClaudeCliInstall(),
+    renderClaudePermissionSettingsConfig(),
     renderClaudeMcpPlaywrightConfig(),
     renderClaudeGlobalPromptSetup(config),
     renderClaudeWrapperSetup(),

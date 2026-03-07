@@ -205,4 +205,76 @@ describe("syncGithubAuthKeys", () => {
         expect(seededCredentialsText).toContain("\"claudeAiOauth\"")
       })
     ).pipe(Effect.provide(NodeContext.layer)))
+
+  it.effect("does not reseed Claude session credentials when oauth token already exists", () =>
+    withTempDir((root) =>
+      Effect.gen(function*(_) {
+        const fs = yield* _(FileSystem.FileSystem)
+        const path = yield* _(Path.Path)
+        const hostHome = path.join(root, "host-home")
+        const hostClaudeDir = path.join(hostHome, ".claude")
+        const hostClaudeJson = path.join(hostHome, ".claude.json")
+        const hostCredentialsJson = path.join(hostClaudeDir, ".credentials.json")
+        const targetAccountDir = path.join(
+          root,
+          ".docker-git",
+          ".orch",
+          "auth",
+          "claude",
+          "default"
+        )
+        const targetOauthToken = path.join(targetAccountDir, ".oauth-token")
+        const targetCredentials = path.join(targetAccountDir, ".credentials.json")
+
+        yield* _(fs.makeDirectory(hostClaudeDir, { recursive: true }))
+        yield* _(fs.makeDirectory(targetAccountDir, { recursive: true }))
+        yield* _(fs.writeFileString(targetOauthToken, "oauth-token-value\n"))
+        yield* _(
+          fs.writeFileString(
+            hostClaudeJson,
+            JSON.stringify(
+              {
+                oauthAccount: { accountUuid: "acc-2" },
+                userID: "user-2"
+              },
+              null,
+              2
+            )
+          )
+        )
+        yield* _(
+          fs.writeFileString(
+            hostCredentialsJson,
+            JSON.stringify(
+              {
+                claudeAiOauth: { accessToken: "token-2" }
+              },
+              null,
+              2
+            )
+          )
+        )
+
+        const previousHome = process.env["HOME"]
+        yield* _(
+          Effect.addFinalizer(() =>
+            Effect.sync(() => {
+              if (previousHome === undefined) {
+                delete process.env["HOME"]
+              } else {
+                process.env["HOME"] = previousHome
+              }
+            })
+          )
+        )
+        yield* _(Effect.sync(() => {
+          process.env["HOME"] = hostHome
+        }))
+
+        yield* _(ensureClaudeAuthSeedFromHome(root, ".docker-git/.orch/auth/claude"))
+
+        const hasSeededCredentials = yield* _(fs.exists(targetCredentials))
+        expect(hasSeededCredentials).toBe(false)
+      })
+    ).pipe(Effect.provide(NodeContext.layer)))
 })

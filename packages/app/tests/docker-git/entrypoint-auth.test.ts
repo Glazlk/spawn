@@ -39,8 +39,20 @@ describe("renderEntrypoint auth bridge", () => {
       expect(entrypoint).toContain("CLAUDE_CONFIG_DIR=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"")
       expect(entrypoint).toContain("docker_git_ensure_claude_cli()")
       expect(entrypoint).toContain("claude cli.js not found under npm global root; skip shim restore")
+      expect(entrypoint).toContain("CLAUDE_PERMISSION_SETTINGS_FILE=\"$CLAUDE_CONFIG_DIR/settings.json\"")
+      expect(entrypoint).toContain("docker_git_sync_claude_permissions()")
+      expect(entrypoint).toContain(
+        "const currentPermissions = isRecord(settings.permissions) ? settings.permissions : {}"
+      )
+      expect(entrypoint).toContain("defaultMode: \"bypassPermissions\"")
+      expect(entrypoint).toContain("CLAUDE_TOKEN_FILE=\"$CLAUDE_CONFIG_DIR/.oauth-token\"")
       expect(entrypoint).toContain("CLAUDE_CREDENTIALS_FILE=\"$CLAUDE_CONFIG_DIR/.credentials.json\"")
-      expect(entrypoint).toContain("if [[ -s \"$CLAUDE_CREDENTIALS_FILE\" ]]; then")
+      expect(entrypoint).toContain("CLAUDE_NESTED_CREDENTIALS_FILE=\"$CLAUDE_CONFIG_DIR/.claude/.credentials.json\"")
+      expect(entrypoint).toContain("docker_git_prepare_claude_auth_mode()")
+      expect(entrypoint).toContain(
+        "rm -f \"$CLAUDE_CREDENTIALS_FILE\" \"$CLAUDE_NESTED_CREDENTIALS_FILE\" \"$CLAUDE_HOME_DIR/.credentials.json\" || true"
+      )
+      expect(entrypoint).toContain("if [[ ! -s \"$CLAUDE_TOKEN_FILE\" ]]; then")
       expect(entrypoint).toContain("CLAUDE_SETTINGS_FILE=\"${CLAUDE_HOME_JSON:-$CLAUDE_CONFIG_DIR/.claude.json}\"")
       expect(entrypoint).toContain("nextServers.playwright = {")
       expect(entrypoint).toContain("command: \"docker-git-playwright-mcp\"")

@@ -194,6 +194,25 @@ const syncClaudeCredentialsJson = (
     updateLabel: "Claude credentials"
   })
 
+const hasNonEmptyFile = (
+  fs: FileSystem.FileSystem,
+  filePath: string
+): Effect.Effect<boolean, PlatformError> =>
+  Effect.gen(function*(_) {
+    const exists = yield* _(fs.exists(filePath))
+    if (!exists) {
+      return false
+    }
+
+    const info = yield* _(fs.stat(filePath))
+    if (info.type !== "File") {
+      return false
+    }
+
+    const text = yield* _(fs.readFileString(filePath), Effect.orElseSucceed(() => ""))
+    return text.trim().length > 0
+  })
+
 // CHANGE: seed docker-git Claude auth store from host-level Claude files
 // WHY: Claude Code (v2+) keeps OAuth session in ~/.claude.json and ~/.claude/.credentials.json
 // QUOTE(ТЗ): "глобальная авторизация для клода ... должна сама везде настроиться"
@@ -221,11 +240,15 @@ export const ensureClaudeAuthSeedFromHome = (
       const claudeRoot = resolvePathFromBase(path, baseDir, claudeAuthPath)
       const targetAccountDir = path.join(claudeRoot, "default")
       const targetClaudeJson = path.join(targetAccountDir, ".claude.json")
+      const targetOauthToken = path.join(targetAccountDir, ".oauth-token")
       const targetCredentials = path.join(targetAccountDir, ".credentials.json")
+      const hasTargetOauthToken = yield* _(hasNonEmptyFile(fs, targetOauthToken))
 
       yield* _(fs.makeDirectory(targetAccountDir, { recursive: true }))
       yield* _(syncClaudeHomeJson(fs, path, sourceClaudeJson, targetClaudeJson))
-      yield* _(syncClaudeCredentialsJson(fs, path, sourceCredentials, targetCredentials))
+      if (!hasTargetOauthToken) {
+        yield* _(syncClaudeCredentialsJson(fs, path, sourceCredentials, targetCredentials))
+      }
     })
   )
 
