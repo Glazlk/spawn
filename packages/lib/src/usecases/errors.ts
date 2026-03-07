@@ -76,31 +76,34 @@ const renderDockerAccessActionPlan = (issue: DockerAccessError["issue"]): string
   return issue === "PermissionDenied" ? permissionDeniedPlan.join("\n") : daemonUnavailablePlan.join("\n")
 }
 
+const renderDockerCommandError = ({ exitCode }: DockerCommandError): string =>
+  [
+    `docker compose failed with exit code ${exitCode}`,
+    "Hint: ensure Docker daemon is running and current user can access /var/run/docker.sock (for example via the docker group).",
+    "Hint: if output above contains 'port is already allocated', retry with a free SSH port via --ssh-port <port> (for example --ssh-port 2235), or stop the conflicting project/container.",
+    "Hint: if output above contains 'all predefined address pools have been fully subnetted', run `docker network prune -f`, configure Docker `default-address-pools`, or use shared network mode (`--network-mode shared`).",
+    "Hint: if output above contains 'lookup auth.docker.io' or 'read udp ... [::1]:53 ... connection refused', fix Docker DNS resolver (set working DNS in host/daemon config) and retry."
+  ].join("\n")
+
+const renderDockerAccessError = ({ details, issue }: DockerAccessError): string =>
+  [
+    renderDockerAccessHeadline(issue),
+    "Hint: ensure Docker daemon is running and current user can access the docker socket.",
+    "Hint: if you use rootless Docker, set DOCKER_HOST to your user socket (for example unix:///run/user/$UID/docker.sock).",
+    renderDockerAccessActionPlan(issue),
+    `Details: ${details}`
+  ].join("\n")
+
 const renderPrimaryError = (error: NonParseError): string | null =>
   Match.value(error).pipe(
     Match.when({ _tag: "FileExistsError" }, ({ path }) => `File already exists: ${path} (use --force to overwrite)`),
-    Match.when({ _tag: "DockerCommandError" }, ({ exitCode }) =>
-      [
-        `docker compose failed with exit code ${exitCode}`,
-        "Hint: ensure Docker daemon is running and current user can access /var/run/docker.sock (for example via the docker group).",
-        "Hint: if output above contains 'port is already allocated', retry with a free SSH port via --ssh-port <port> (for example --ssh-port 2235), or stop the conflicting project/container.",
-        "Hint: if output above contains 'all predefined address pools have been fully subnetted', run `docker network prune -f`, configure Docker `default-address-pools`, or use shared network mode (`--network-mode shared`).",
-        "Hint: if output above contains 'lookup auth.docker.io' or 'read udp ... [::1]:53 ... connection refused', fix Docker DNS resolver (set working DNS in host/daemon config) and retry."
-      ].join("\n")),
-    Match.when({ _tag: "DockerAccessError" }, ({ details, issue }) =>
-      [
-        renderDockerAccessHeadline(issue),
-        "Hint: ensure Docker daemon is running and current user can access the docker socket.",
-        "Hint: if you use rootless Docker, set DOCKER_HOST to your user socket (for example unix:///run/user/$UID/docker.sock).",
-        renderDockerAccessActionPlan(issue),
-        `Details: ${details}`
-      ].join("\n")),
+    Match.when({ _tag: "DockerCommandError" }, renderDockerCommandError),
+    Match.when({ _tag: "DockerAccessError" }, renderDockerAccessError),
     Match.when({ _tag: "CloneFailedError" }, ({ repoRef, repoUrl, targetDir }) =>
       `Clone failed for ${repoUrl} (${repoRef}) into ${targetDir}`),
     Match.when({ _tag: "AgentFailedError" }, ({ agentMode, targetDir }) =>
       `Agent (${agentMode}) failed in ${targetDir}`),
-    Match.when({ _tag: "PortProbeError" }, ({ message, port }) =>
-      `SSH port check failed for ${port}: ${message}`),
+    Match.when({ _tag: "PortProbeError" }, ({ message, port }) => `SSH port check failed for ${port}: ${message}`),
     Match.when(
       { _tag: "CommandFailedError" },
       ({ command, exitCode }) => `${command} failed with exit code ${exitCode}`

@@ -139,7 +139,9 @@ const openSshBestEffort = (
     const sshKey = yield* _(findSshPrivateKey(fs, path, process.cwd()))
     const sshCommand = buildSshCommand(template, sshKey)
 
-    yield* _(Effect.log(`Opening SSH: ${sshCommand}${remoteCommand !== undefined ? ` (${remoteCommand})` : ""}`))
+    const remoteCommandLabel = remoteCommand === undefined ? "" : ` (${remoteCommand})`
+
+    yield* _(Effect.log(`Opening SSH: ${sshCommand}${remoteCommandLabel}`))
     yield* _(ensureTerminalCursorVisible())
     yield* _(
       runCommandWithExitCodes(
@@ -159,6 +161,40 @@ const openSshBestEffort = (
       onSuccess: () => Effect.void
     })
   )
+
+const resolveInteractiveRemoteCommand = (
+  projectConfig: CreateCommand["config"],
+  interactiveAgent: boolean
+): string | undefined =>
+  interactiveAgent && projectConfig.agentMode !== undefined
+    ? `cd '${projectConfig.targetDir}' && ${projectConfig.agentMode}`
+    : undefined
+
+const maybeOpenSsh = (
+  command: CreateCommand,
+  hasAgent: boolean,
+  waitForAgent: boolean,
+  projectConfig: CreateCommand["config"]
+): Effect.Effect<void, never, CreateProjectRuntime> =>
+  Effect.gen(function*(_) {
+    const interactiveAgent = hasAgent && !waitForAgent
+    if (!command.openSsh || (hasAgent && !interactiveAgent)) {
+      return
+    }
+
+    if (!command.runUp) {
+      yield* _(Effect.logWarning("Skipping SSH auto-open: docker compose up disabled (--no-up)."))
+      return
+    }
+
+    if (!isInteractiveTty()) {
+      yield* _(Effect.logWarning("Skipping SSH auto-open: not running in an interactive TTY."))
+      return
+    }
+
+    const remoteCommand = resolveInteractiveRemoteCommand(projectConfig, interactiveAgent)
+    yield* _(openSshBestEffort(projectConfig, remoteCommand))
+  }).pipe(Effect.asVoid)
 
 const runCreateProject = (
   path: Path.Path,
@@ -207,20 +243,7 @@ const runCreateProject = (
     }
 
     yield* _(autoSyncState(`chore(state): update ${formatStateSyncLabel(projectConfig.repoUrl)}`))
-
-    const interactiveAgent = hasAgent && !waitForAgent
-    if (command.openSsh && (!hasAgent || interactiveAgent)) {
-      if (!command.runUp) {
-        yield* _(Effect.logWarning("Skipping SSH auto-open: docker compose up disabled (--no-up)."))
-      } else if (isInteractiveTty()) {
-        const remoteCommand = interactiveAgent
-          ? `cd '${projectConfig.targetDir}' && ${projectConfig.agentMode}`
-          : undefined
-        yield* _(openSshBestEffort(projectConfig, remoteCommand))
-      } else {
-        yield* _(Effect.logWarning("Skipping SSH auto-open: not running in an interactive TTY."))
-      }
-    }
+    yield* _(maybeOpenSsh(command, hasAgent, waitForAgent, projectConfig))
   }).pipe(Effect.asVoid)
 
 export const createProject = (command: CreateCommand): Effect.Effect<void, CreateProjectError, CreateProjectRuntime> =>
