@@ -6,7 +6,7 @@ import * as Fiber from "effect/Fiber"
 import type * as Scope from "effect/Scope"
 import * as Stream from "effect/Stream"
 
-import { resolveDefaultDockerUser } from "../shell/docker-auth.js"
+import { resolveDefaultDockerUser, resolveDockerVolumeHostPath } from "../shell/docker-auth.js"
 import { AuthError, CommandFailedError } from "../shell/errors.js"
 
 const oauthTokenEnvKey = "DOCKER_GIT_CLAUDE_OAUTH_TOKEN"
@@ -257,7 +257,8 @@ export const runClaudeOauthLoginWithPrompt = (
   return Effect.scoped(
     Effect.gen(function*(_) {
       const executor = yield* _(CommandExecutor.CommandExecutor)
-      const spec = buildDockerSetupTokenSpec(cwd, accountPath, options.image, options.containerPath)
+      const hostPath = yield* _(resolveDockerVolumeHostPath(cwd, accountPath))
+      const spec = buildDockerSetupTokenSpec(cwd, hostPath, options.image, options.containerPath)
       const proc = yield* _(startDockerProcess(executor, spec))
 
       const tokenBox: { value: string | null } = { value: null }
