@@ -27,7 +27,8 @@ RUN printf "%s\n" \
 RUN mkdir -p /home/dev/app && chown -R dev:dev /home/dev
 
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE 22
+EXPOSE 3334
 ENTRYPOINT ["/entrypoint.sh"]
