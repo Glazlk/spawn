@@ -163,7 +163,7 @@ const renderAgentIssueReview = (config: TemplateConfig): string =>
     String.raw`if [[ "$AGENT_OK" -eq 1 && "$AGENT_AUTO" == "1" && -n "$ISSUE_NUM" ]]; then`,
     indentBlock(renderAgentIssueComment(config)),
     "",
-    indentBlock(renderAgentIssueMove(config)),
+    renderAgentIssueMove(config),
     "fi"
   ].join("\n")
 
@@ -184,7 +184,7 @@ if [[ "$CLONE_OK" -eq 1 && -n "$AGENT_MODE" ]]; then`,
     "",
     indentBlock(renderAgentModeCase(config)),
     "",
-    indentBlock(renderAgentIssueReview(config)),
+    renderAgentIssueReview(config),
     "",
     indentBlock(renderAgentFinalize()),
     "fi"

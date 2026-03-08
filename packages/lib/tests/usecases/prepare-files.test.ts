@@ -5,6 +5,7 @@ import { describe, expect, it } from "@effect/vitest"
 import { Effect } from "effect"
 
 import type { TemplateConfig } from "../../src/core/domain.js"
+import { runCommandExitCode } from "../../src/shell/command-runner.js"
 import { prepareProjectFiles } from "../../src/usecases/actions/prepare-files.js"
 
 const withTempDir = <A, E, R>(
@@ -113,8 +114,17 @@ describe("prepareProjectFiles", () => {
         )
 
         const dockerfile = yield* _(fs.readFileString(path.join(outDir, "Dockerfile")))
-        const entrypoint = yield* _(fs.readFileString(path.join(outDir, "entrypoint.sh")))
+        const entrypointPath = path.join(outDir, "entrypoint.sh")
+        const entrypoint = yield* _(fs.readFileString(entrypointPath))
         const composeBefore = yield* _(fs.readFileString(path.join(outDir, "docker-compose.yml")))
+        const entrypointSyntaxExitCode = yield* _(
+          runCommandExitCode({
+            cwd: outDir,
+            command: "bash",
+            args: ["-n", entrypointPath]
+          })
+        )
+        expect(entrypointSyntaxExitCode).toBe(0)
         expect(dockerfile).toContain("docker-compose-v2")
         expect(dockerfile).toContain("gitleaks version")
         expect(dockerfile).toContain(
@@ -130,6 +140,9 @@ describe("prepareProjectFiles", () => {
         expect(entrypoint).toContain('"plugin": ["oh-my-opencode"]')
         expect(entrypoint).toContain("branch '$REPO_REF' missing; retrying without --branch")
         expect(entrypoint).not.toContain("git ls-remote --symref")
+        expect(entrypoint).toContain("cat > \"$MOVE_SCRIPT\" << 'EOFMOVE'")
+        expect(entrypoint).toMatch(/\nEOFMOVE\n\s*chmod \+x "\$MOVE_SCRIPT"/)
+        expect(entrypoint).not.toContain("\n  EOFMOVE\n")
         expect(composeBefore).toContain("container_name: dg-test")
         expect(composeBefore).toContain("restart: unless-stopped")
         expect(composeBefore).toContain(":/home/dev/.docker-git")
