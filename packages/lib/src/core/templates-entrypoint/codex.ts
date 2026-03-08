@@ -216,6 +216,7 @@ WORKSPACES_LINE="Доступные workspace пути: __TARGET_DIR__"
 WORKSPACE_INFO_LINE="Контекст workspace: repository"
 FOCUS_LINE="Фокус задачи: работай только в workspace, который запрашивает пользователь. Текущий workspace: __TARGET_DIR__"
 INTERNET_LINE="Доступ к интернету: есть. Если чего-то не знаешь — ищи в интернете или по кодовой базе."
+SUBAGENTS_LINE="Для решения задач обязательно используй subagents. Сам агент обязан выполнять финальную проверку, интеграцию и валидацию результата перед ответом пользователю."
 if [[ "$REPO_REF" == issue-* ]]; then
   ISSUE_ID="$(printf "%s" "$REPO_REF" | sed -E 's#^issue-##')"
   ISSUE_URL=""
@@ -247,9 +248,9 @@ elif [[ "$REPO_REF" == refs/pull/*/head ]]; then
     WORKSPACE_INFO_LINE="Контекст workspace: pull request ($REPO_REF)"
   fi
 fi
+MANAGED_START="<!-- docker-git:managed:start -->"
+MANAGED_END="<!-- docker-git:managed:end -->"
 if [[ ! -f "$AGENTS_PATH" ]]; then
-  MANAGED_START="<!-- docker-git:managed:start -->"
-  MANAGED_END="<!-- docker-git:managed:end -->"
   MANAGED_BLOCK="$(cat <<EOF
 $MANAGED_START
 $PROJECT_LINE
@@ -257,6 +258,7 @@ $WORKSPACES_LINE
 $WORKSPACE_INFO_LINE
 $FOCUS_LINE
 $INTERNET_LINE
+$SUBAGENTS_LINE
 $MANAGED_END
 EOF
 )"
@@ -268,8 +270,6 @@ EOF
   chown 1000:1000 "$AGENTS_PATH" || true
 fi
 if [[ -f "$AGENTS_PATH" ]]; then
-  MANAGED_START="<!-- docker-git:managed:start -->"
-  MANAGED_END="<!-- docker-git:managed:end -->"
   MANAGED_BLOCK="$(cat <<EOF
 $MANAGED_START
 $PROJECT_LINE
@@ -277,6 +277,7 @@ $WORKSPACES_LINE
 $WORKSPACE_INFO_LINE
 $FOCUS_LINE
 $INTERNET_LINE
+$SUBAGENTS_LINE
 $MANAGED_END
 EOF
 )"
@@ -296,6 +297,7 @@ EOF
       -e '/^Фокус задачи:/d' \
       -e '/^Issue AGENTS.md:/d' \
       -e '/^Доступ к интернету:/d' \
+      -e '/^Для решения задач обязательно используй subagents[.]/d' \
       "$AGENTS_PATH" > "$TMP_AGENTS_PATH"
     if [[ -s "$TMP_AGENTS_PATH" ]]; then
       printf "\n" >> "$TMP_AGENTS_PATH"
@@ -314,7 +316,7 @@ if [[ -f "$LEGACY_AGENTS_PATH" && -f "$AGENTS_PATH" ]]; then
 fi`
 
 export const renderEntrypointAgentsNotice = (config: TemplateConfig): string =>
-  entrypointAgentsNoticeTemplate
-    .replaceAll("__CODEX_HOME__", config.codexHome)
-    .replaceAll("__SSH_USER__", config.sshUser)
-    .replaceAll("__TARGET_DIR__", config.targetDir)
+  entrypointAgentsNoticeTemplate.replaceAll("__CODEX_HOME__", config.codexHome).replaceAll(
+    "__SSH_USER__",
+    config.sshUser
+  ).replaceAll("__TARGET_DIR__", config.targetDir)
