@@ -26,8 +26,10 @@ docker-git auth claude login --web
 
 ## Пример
 
+Можно передавать ссылку на репозиторий, ветку (`/tree/...`), issue или PR.
+
 ```bash
-docker-git clone https://github.com/agiens/crm/tree/vova-fork --force --mcp-playwright
+docker-git clone https://github.com/ProverCoderAI/docker-git/issues/122 --force --mcp-playwright
 ```
 
 - `--force` пересоздаёт окружение и удаляет volumes проекта.
