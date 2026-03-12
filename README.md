@@ -1,13 +1,7 @@
 # docker-git
 
-`docker-git` поднимает отдельную Docker-среду для каждого репозитория, issue или PR.
-Проекты по умолчанию хранятся в `~/.docker-git`.
-
-## Зачем это нужно
-
-- Один репозиторий — один контейнер, без конфликтов между проектами.
-- Можно открывать GitHub issue и PR как отдельные рабочие среды.
-- Для существующего проекта можно отдельно включить Playwright MCP.
+`docker-git` создаёт отдельную Docker-среду для каждого репозитория, issue или PR.
+По умолчанию проекты лежат в `~/.docker-git`.
 
 ## Что нужно
 
@@ -19,57 +13,30 @@
 
 ```bash
 npm i -g @prover-coder-ai/docker-git
-```
-
-Альтернатива:
-
-```bash
-pnpm add -g @prover-coder-ai/docker-git
-```
-
-Проверка:
-
-```bash
 docker-git --help
 ```
 
-## Быстрый старт
-
-Авторизация GitHub:
+Из этого репозитория:
 
 ```bash
-docker-git auth github login --web
+pnpm install
+pnpm run docker-git --help
 ```
 
-Клонировать репозиторий в отдельную среду:
+## Авторизация
 
 ```bash
-docker-git clone https://github.com/org/repo
+pnpm run docker-git auth github login --web
+pnpm run docker-git auth codex login --web
+pnpm run docker-git auth claude login --web
 ```
 
-Клонировать issue как отдельную среду:
+## Пример
 
 ```bash
-docker-git clone https://github.com/org/repo/issues/123
+docker-git clone https://github.com/agiens/crm/tree/vova-fork --force --mcp-playwright
 ```
-
-Открыть уже созданный проект:
-
-```bash
-docker-git open https://github.com/org/repo/issues/123
-```
-
-Включить Playwright MCP для существующего проекта:
-
-```bash
-docker-git mcp-playwright --project-dir .
-```
-
-## Где лежат проекты
-
-По умолчанию: `~/.docker-git`
 
 ## Подробности
 
-- Все команды и флаги: `docker-git --help`
-- API-документация: [packages/api/README.md](packages/api/README.md)
+`docker-git --help`
