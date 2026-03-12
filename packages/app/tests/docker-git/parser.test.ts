@@ -128,6 +128,9 @@ describe("parseArgs", () => {
   it.effect("rejects legacy --claude flag", () =>
     expectParseErrorTag(["clone", "https://github.com/org/repo.git", "--claude", "--auto"], "InvalidOption"))
 
+  it.effect("rejects legacy --codex flag", () =>
+    expectParseErrorTag(["clone", "https://github.com/org/repo.git", "--codex", "--auto"], "InvalidOption"))
+
   it.effect("rejects invalid --auto value", () =>
     expectParseErrorTag(["clone", "https://github.com/org/repo.git", "--auto=foo"], "InvalidOption"))
 

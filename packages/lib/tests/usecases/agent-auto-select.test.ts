@@ -3,6 +3,7 @@ import * as Path from "@effect/platform/Path"
 import { NodeContext } from "@effect/platform-node"
 import { describe, expect, it } from "@effect/vitest"
 import { Effect } from "effect"
+import { vi } from "vitest"
 
 import type { TemplateConfig } from "../../src/core/domain.js"
 import { resolveAutoAgentMode } from "../../src/usecases/agent-auto-select.js"
@@ -62,6 +63,22 @@ describe("resolveAutoAgentMode", () => {
       })
     ).pipe(Effect.provide(NodeContext.layer)))
 
+  it.effect("keeps explicit Claude mode when Claude auth exists", () =>
+    withTempDir((root) =>
+      Effect.gen(function*(_) {
+        const fs = yield* _(FileSystem.FileSystem)
+        const path = yield* _(Path.Path)
+        const config = { ...makeConfig(root, path), agentMode: "claude" as const }
+        const claudeRoot = path.join(root, ".orch/auth/claude/default")
+
+        yield* _(fs.makeDirectory(claudeRoot, { recursive: true }))
+        yield* _(fs.writeFileString(path.join(claudeRoot, ".oauth-token"), "token\n"))
+
+        const mode = yield* _(resolveAutoAgentMode(config))
+        expect(mode).toBe("claude")
+      })
+    ).pipe(Effect.provide(NodeContext.layer)))
+
   it.effect("chooses Codex when only Codex auth exists", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
@@ -75,6 +92,89 @@ describe("resolveAutoAgentMode", () => {
 
         const mode = yield* _(resolveAutoAgentMode(config))
         expect(mode).toBe("codex")
+      })
+    ).pipe(Effect.provide(NodeContext.layer)))
+
+  it.effect("keeps explicit Codex mode when Codex auth exists", () =>
+    withTempDir((root) =>
+      Effect.gen(function*(_) {
+        const fs = yield* _(FileSystem.FileSystem)
+        const path = yield* _(Path.Path)
+        const config = { ...makeConfig(root, path), agentMode: "codex" as const }
+        const codexRoot = path.join(root, ".orch/auth/codex")
+
+        yield* _(fs.makeDirectory(codexRoot, { recursive: true }))
+        yield* _(fs.writeFileString(path.join(codexRoot, "auth.json"), "{\"ok\":true}\n"))
+
+        const mode = yield* _(resolveAutoAgentMode(config))
+        expect(mode).toBe("codex")
+      })
+    ).pipe(Effect.provide(NodeContext.layer)))
+
+  it.effect("chooses randomly when both Claude and Codex auth exist", () =>
+    withTempDir((root) =>
+      Effect.gen(function*(_) {
+        const fs = yield* _(FileSystem.FileSystem)
+        const path = yield* _(Path.Path)
+        const config = makeConfig(root, path)
+        const claudeRoot = path.join(root, ".orch/auth/claude/default")
+        const codexRoot = path.join(root, ".orch/auth/codex")
+
+        yield* _(fs.makeDirectory(claudeRoot, { recursive: true }))
+        yield* _(fs.makeDirectory(codexRoot, { recursive: true }))
+        yield* _(fs.writeFileString(path.join(claudeRoot, ".oauth-token"), "token\n"))
+        yield* _(fs.writeFileString(path.join(codexRoot, "auth.json"), "{\"ok\":true}\n"))
+
+        const previousRandom = Math.random
+        yield* _(Effect.addFinalizer(() =>
+          Effect.sync(() => {
+            Math.random = previousRandom
+          })
+        ))
+
+        yield* _(Effect.sync(() => {
+          Math.random = vi.fn(() => 0.1)
+        }))
+        const claudeMode = yield* _(resolveAutoAgentMode(config))
+        expect(claudeMode).toBe("claude")
+
+        yield* _(Effect.sync(() => {
+          Math.random = vi.fn(() => 0.9)
+        }))
+        const codexMode = yield* _(resolveAutoAgentMode(config))
+        expect(codexMode).toBe("codex")
+      })
+    ).pipe(Effect.provide(NodeContext.layer)))
+
+  it.effect("fails explicit Claude mode when Claude auth is missing", () =>
+    withTempDir((root) =>
+      Effect.gen(function*(_) {
+        const path = yield* _(Path.Path)
+        const config = { ...makeConfig(root, path), agentMode: "claude" as const }
+
+        const exit = yield* _(
+          resolveAutoAgentMode(config).pipe(
+            Effect.flip,
+            Effect.map((error) => error._tag)
+          )
+        )
+        expect(exit).toBe("InvalidOption")
+      })
+    ).pipe(Effect.provide(NodeContext.layer)))
+
+  it.effect("fails explicit Codex mode when Codex auth is missing", () =>
+    withTempDir((root) =>
+      Effect.gen(function*(_) {
+        const path = yield* _(Path.Path)
+        const config = { ...makeConfig(root, path), agentMode: "codex" as const }
+
+        const exit = yield* _(
+          resolveAutoAgentMode(config).pipe(
+            Effect.flip,
+            Effect.map((error) => error._tag)
+          )
+        )
+        expect(exit).toBe("InvalidOption")
       })
     ).pipe(Effect.provide(NodeContext.layer)))
 
