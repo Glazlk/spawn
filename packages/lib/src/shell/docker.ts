@@ -5,6 +5,7 @@ import type { PlatformError } from "@effect/platform/Error"
 import { Duration, Effect, pipe, Schedule } from "effect"
 
 import { runCommandCapture, runCommandExitCode, runCommandWithExitCodes } from "./command-runner.js"
+import { resolveDockerVolumeHostPath } from "./docker-auth.js"
 import { CommandFailedError, DockerCommandError } from "./errors.js"
 
 export { classifyDockerAccessIssue, ensureDockerDaemonAccess } from "./docker-daemon-access.js"
@@ -15,6 +16,46 @@ const composeSpec = (cwd: string, args: ReadonlyArray<string>) => ({
   command: "docker",
   args: ["compose", "--ansi", "never", "--progress", "plain", ...args]
 })
+
+const resolveEnvValue = (key: string): string | null => {
+  const value = process.env[key]?.trim()
+  return value && value.length > 0 ? value : null
+}
+
+const trimTrailingSlash = (value: string): string => {
+  let end = value.length
+  while (end > 0) {
+    const char = value[end - 1]
+    if (char !== "/" && char !== "\\") {
+      break
+    }
+    end -= 1
+  }
+  return value.slice(0, end)
+}
+
+const resolveProjectsRootCandidate = (): string | null => {
+  const explicit = resolveEnvValue("DOCKER_GIT_PROJECTS_ROOT")
+  if (explicit !== null) {
+    return explicit
+  }
+
+  const home = resolveEnvValue("HOME") ?? resolveEnvValue("USERPROFILE")
+  return home === null ? null : `${trimTrailingSlash(home)}/.docker-git`
+}
+
+const resolveComposeEnv = (
+  cwd: string
+): Effect.Effect<Readonly<Record<string, string>>, never, CommandExecutor.CommandExecutor> =>
+  Effect.gen(function*(_) {
+    const projectsRoot = resolveProjectsRootCandidate()
+    if (projectsRoot === null) {
+      return {}
+    }
+
+    const remappedProjectsRoot = yield* _(resolveDockerVolumeHostPath(cwd, projectsRoot))
+    return remappedProjectsRoot === projectsRoot ? {} : { DOCKER_GIT_PROJECTS_ROOT_HOST: remappedProjectsRoot }
+  })
 
 const parseInspectNetworkEntry = (line: string): ReadonlyArray<readonly [string, string]> => {
   const idx = line.indexOf("=")
@@ -35,22 +76,38 @@ const runCompose = (
   args: ReadonlyArray<string>,
   okExitCodes: ReadonlyArray<number>
 ): Effect.Effect<void, DockerCommandError | PlatformError, CommandExecutor.CommandExecutor> =>
-  runCommandWithExitCodes(
-    composeSpec(cwd, args),
-    okExitCodes,
-    (exitCode) => new DockerCommandError({ exitCode })
-  )
+  Effect.gen(function*(_) {
+    const env = yield* _(resolveComposeEnv(cwd))
+    yield* _(
+      runCommandWithExitCodes(
+        {
+          ...composeSpec(cwd, args),
+          ...(Object.keys(env).length > 0 ? { env } : {})
+        },
+        okExitCodes,
+        (exitCode) => new DockerCommandError({ exitCode })
+      )
+    )
+  })
 
 const runComposeCapture = (
   cwd: string,
   args: ReadonlyArray<string>,
   okExitCodes: ReadonlyArray<number>
 ): Effect.Effect<string, DockerCommandError | PlatformError, CommandExecutor.CommandExecutor> =>
-  runCommandCapture(
-    composeSpec(cwd, args),
-    okExitCodes,
-    (exitCode) => new DockerCommandError({ exitCode })
-  )
+  Effect.gen(function*(_) {
+    const env = yield* _(resolveComposeEnv(cwd))
+    return yield* _(
+      runCommandCapture(
+        {
+          ...composeSpec(cwd, args),
+          ...(Object.keys(env).length > 0 ? { env } : {})
+        },
+        okExitCodes,
+        (exitCode) => new DockerCommandError({ exitCode })
+      )
+    )
+  })
 
 const dockerComposeUpRetrySchedule = Schedule.addDelay(
   Schedule.recurs(2),
