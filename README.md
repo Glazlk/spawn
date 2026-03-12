@@ -16,19 +16,12 @@ npm i -g @prover-coder-ai/docker-git
 docker-git --help
 ```
 
-Из этого репозитория:
-
-```bash
-pnpm install
-pnpm run docker-git --help
-```
-
 ## Авторизация
 
 ```bash
-pnpm run docker-git auth github login --web
-pnpm run docker-git auth codex login --web
-pnpm run docker-git auth claude login --web
+docker-git auth github login --web
+docker-git auth codex login --web
+docker-git auth claude login --web
 ```
 
 ## Пример
@@ -36,6 +29,9 @@ pnpm run docker-git auth claude login --web
 ```bash
 docker-git clone https://github.com/agiens/crm/tree/vova-fork --force --mcp-playwright
 ```
+
+- `--force` пересоздаёт окружение и удаляет volumes проекта.
+- `--mcp-playwright` включает Playwright MCP и Chromium sidecar для браузерной автоматизации.
 
 ## Подробности
 
