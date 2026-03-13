@@ -315,7 +315,7 @@ export const buildCreateCommand = (
     const dockerSharedNetworkName = yield* _(
       nonEmpty("--shared-network", raw.dockerSharedNetworkName, defaultTemplateConfig.dockerSharedNetworkName)
     )
-    const { agentMode, agentAuto } = yield* _(resolveAutoAgentFlags(raw))
+    const { agentAuto, agentMode } = yield* _(resolveAutoAgentFlags(raw))
 
     return {
       _tag: "Create",

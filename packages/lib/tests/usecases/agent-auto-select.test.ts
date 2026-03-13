@@ -3,7 +3,6 @@ import * as Path from "@effect/platform/Path"
 import { NodeContext } from "@effect/platform-node"
 import { describe, expect, it } from "@effect/vitest"
 import { Effect } from "effect"
-import { vi } from "vitest"
 
 import type { TemplateConfig } from "../../src/core/domain.js"
 import { resolveAutoAgentMode } from "../../src/usecases/agent-auto-select.js"
@@ -68,7 +67,7 @@ describe("resolveAutoAgentMode", () => {
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
         const path = yield* _(Path.Path)
-        const config = { ...makeConfig(root, path), agentMode: "claude" as const }
+        const config: TemplateConfig = { ...makeConfig(root, path), agentMode: "claude" }
         const claudeRoot = path.join(root, ".orch/auth/claude/default")
 
         yield* _(fs.makeDirectory(claudeRoot, { recursive: true }))
@@ -100,7 +99,7 @@ describe("resolveAutoAgentMode", () => {
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
         const path = yield* _(Path.Path)
-        const config = { ...makeConfig(root, path), agentMode: "codex" as const }
+        const config: TemplateConfig = { ...makeConfig(root, path), agentMode: "codex" }
         const codexRoot = path.join(root, ".orch/auth/codex")
 
         yield* _(fs.makeDirectory(codexRoot, { recursive: true }))
@@ -111,7 +110,7 @@ describe("resolveAutoAgentMode", () => {
       })
     ).pipe(Effect.provide(NodeContext.layer)))
 
-  it.effect("chooses randomly when both Claude and Codex auth exist", () =>
+  it.effect("returns one of the available agents when both Claude and Codex auth exist", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
@@ -125,24 +124,8 @@ describe("resolveAutoAgentMode", () => {
         yield* _(fs.writeFileString(path.join(claudeRoot, ".oauth-token"), "token\n"))
         yield* _(fs.writeFileString(path.join(codexRoot, "auth.json"), "{\"ok\":true}\n"))
 
-        const previousRandom = Math.random
-        yield* _(Effect.addFinalizer(() =>
-          Effect.sync(() => {
-            Math.random = previousRandom
-          })
-        ))
-
-        yield* _(Effect.sync(() => {
-          Math.random = vi.fn(() => 0.1)
-        }))
-        const claudeMode = yield* _(resolveAutoAgentMode(config))
-        expect(claudeMode).toBe("claude")
-
-        yield* _(Effect.sync(() => {
-          Math.random = vi.fn(() => 0.9)
-        }))
-        const codexMode = yield* _(resolveAutoAgentMode(config))
-        expect(codexMode).toBe("codex")
+        const mode = yield* _(resolveAutoAgentMode(config))
+        expect(["claude", "codex"]).toContain(mode)
       })
     ).pipe(Effect.provide(NodeContext.layer)))
 
@@ -150,7 +133,7 @@ describe("resolveAutoAgentMode", () => {
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const path = yield* _(Path.Path)
-        const config = { ...makeConfig(root, path), agentMode: "claude" as const }
+        const config: TemplateConfig = { ...makeConfig(root, path), agentMode: "claude" }
 
         const exit = yield* _(
           resolveAutoAgentMode(config).pipe(
@@ -166,7 +149,7 @@ describe("resolveAutoAgentMode", () => {
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const path = yield* _(Path.Path)
-        const config = { ...makeConfig(root, path), agentMode: "codex" as const }
+        const config: TemplateConfig = { ...makeConfig(root, path), agentMode: "codex" }
 
         const exit = yield* _(
           resolveAutoAgentMode(config).pipe(

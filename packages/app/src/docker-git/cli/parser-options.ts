@@ -123,7 +123,7 @@ const valueFlagUpdaters: { readonly [K in ValueKey]: (raw: RawOptions, value: st
   outDir: (raw, value) => ({ ...raw, outDir: value }),
   projectDir: (raw, value) => ({ ...raw, projectDir: value }),
   lines: (raw, value) => ({ ...raw, lines: value }),
-  agentAutoMode: (raw, value) => ({ ...raw, agentAutoMode: value.trim().toLowerCase() as RawOptions["agentAutoMode"] })
+  agentAutoMode: (raw, value) => ({ ...raw, agentAutoMode: value.trim().toLowerCase() })
 }
 
 export const applyCommandBooleanFlag = (raw: RawOptions, token: string): RawOptions | null => {

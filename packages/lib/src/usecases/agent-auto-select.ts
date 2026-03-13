@@ -1,6 +1,8 @@
+import { randomInt } from "node:crypto"
+
 import type { PlatformError } from "@effect/platform/Error"
 import * as FileSystem from "@effect/platform/FileSystem"
-import * as Path from "@effect/platform/Path"
+import type * as Path from "@effect/platform/Path"
 import { Effect } from "effect"
 
 import type { AgentMode, ParseError, TemplateConfig } from "../core/domain.js"
@@ -59,7 +61,7 @@ const resolveClaudeAccountPath = (rootPath: string, label: string | undefined): 
   if (normalized !== "default") {
     return [`${rootPath}/${normalized}`]
   }
-  return [`${rootPath}`, `${rootPath}/default`]
+  return [rootPath, `${rootPath}/default`]
 }
 
 const hasClaudeAuth = (
@@ -129,5 +131,5 @@ export const resolveAutoAgentMode = (
       return "codex"
     }
 
-    return Math.random() < 0.5 ? "claude" : "codex"
+    return randomInt(0, 2) === 0 ? "claude" : "codex"
   })

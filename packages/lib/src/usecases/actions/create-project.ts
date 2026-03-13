@@ -212,10 +212,14 @@ const runCreateProject = (
 
     const resolvedConfig = yield* _(resolveCreateConfig(command, ctx, resolvedOutDir))
     const resolvedAgentMode = yield* _(resolveAutoAgentMode(resolvedConfig))
-    if ((resolvedConfig.agentAuto ?? false) && resolvedConfig.agentMode === undefined && resolvedAgentMode !== undefined) {
+    if (
+      (resolvedConfig.agentAuto ?? false) && resolvedConfig.agentMode === undefined && resolvedAgentMode !== undefined
+    ) {
       yield* _(Effect.log(`Auto agent selected: ${resolvedAgentMode}`))
     }
-    const finalConfig = resolvedAgentMode === undefined ? resolvedConfig : { ...resolvedConfig, agentMode: resolvedAgentMode }
+    const finalConfig = resolvedAgentMode === undefined
+      ? resolvedConfig
+      : { ...resolvedConfig, agentMode: resolvedAgentMode }
     const { globalConfig, projectConfig } = buildProjectConfigs(path, ctx.baseDir, resolvedOutDir, finalConfig)
 
     yield* _(migrateProjectOrchLayout(ctx.baseDir, globalConfig, ctx.resolveRootPath))
