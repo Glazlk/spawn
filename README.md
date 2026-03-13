@@ -38,10 +38,12 @@ docker-git clone https://github.com/ProverCoderAI/docker-git/issues/122 --force 
 Автоматический запуск агента:
 
 ```bash
-docker-git clone https://github.com/ProverCoderAI/docker-git/issues/122 --force --claude --auto
+docker-git clone https://github.com/ProverCoderAI/docker-git/issues/122 --force --auto
 ```
 
-- `--auto` работает вместе с `--claude` или `--codex`: агент сам выполняет задачу, создаёт PR и после завершения контейнер очищается.
+- `--auto` сам выбирает Claude или Codex по доступной авторизации. Если доступны оба, выбор случайный.
+- `--auto=claude` или `--auto=codex` принудительно выбирает агента.
+- В auto-режиме агент сам выполняет задачу, создаёт PR и после завершения контейнер очищается.
 
 ## Подробности
 
