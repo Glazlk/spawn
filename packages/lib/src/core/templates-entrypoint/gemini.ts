@@ -119,11 +119,21 @@ const nextSettings = {
 }
 
 // Auto-detect auth method if not set
-if (!nextSettings.security.auth || !nextSettings.security.auth.selectedType) {
-  if (fs.existsSync(path.join(path.dirname(settingsPath), "oauth_creds.json"))) {
-    nextSettings.security.auth = { ...(nextSettings.security.auth || {}), selectedType: "oauth-personal" }
-  } else if (fs.existsSync(path.join(path.dirname(settingsPath), "..", ".api-key"))) {
-    nextSettings.security.auth = { ...(nextSettings.security.auth || {}), selectedType: "api-key" }
+const currentAuth = nextSettings.security.auth
+if (!isRecord(currentAuth) || !currentAuth.selectedType) {
+  const settingsDir = path.dirname(settingsPath)
+  const configDir = process.env.GEMINI_CONFIG_DIR || ""
+  
+  const hasOauth = fs.existsSync(path.join(settingsDir, "oauth_creds.json")) || 
+                   (configDir && fs.existsSync(path.join(configDir, ".gemini", "oauth_creds.json")))
+  
+  const hasApiKey = fs.existsSync(path.join(settingsDir, "..", ".api-key")) ||
+                    (configDir && fs.existsSync(path.join(configDir, ".api-key")))
+
+  if (hasOauth) {
+    nextSettings.security.auth = { ...(isRecord(currentAuth) ? currentAuth : {}), selectedType: "oauth-personal" }
+  } else if (hasApiKey) {
+    nextSettings.security.auth = { ...(isRecord(currentAuth) ? currentAuth : {}), selectedType: "api-key" }
   }
 }
 
