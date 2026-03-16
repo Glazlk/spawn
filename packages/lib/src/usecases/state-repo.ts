@@ -253,16 +253,18 @@ const adoptRemoteHistoryIfOrphan = (
       return // Histories are related — normal rebase in stateSync will handle it
     }
 
-    // Merge unrelated histories so both are preserved; prefer local on conflict
+    // Merge unrelated histories so both are preserved; abort on conflict — stateSync will open a PR
     yield* _(Effect.logWarning(`Local history has no common ancestor with ${remoteRef}; merging unrelated histories`))
-    yield* _(
-      git(
-        root,
-        ["merge", "--allow-unrelated-histories", "--no-edit", "-s", "recursive", "-X", "ours", remoteRef],
-        gitBaseEnv
-      )
+    const mergeExit = yield* _(
+      gitExitCode(root, ["merge", "--allow-unrelated-histories", "--no-edit", remoteRef], gitBaseEnv)
     )
-    yield* _(Effect.log(`Merged unrelated histories from ${remoteRef}`))
+    if (mergeExit === successExitCode) {
+      yield* _(Effect.log(`Merged unrelated histories from ${remoteRef}`))
+      return
+    }
+    // Conflict — abort and leave resolution to stateSync (which will push a branch and log a PR URL)
+    yield* _(gitExitCode(root, ["merge", "--abort"], gitBaseEnv))
+    yield* _(Effect.logWarning(`Merge conflict with ${remoteRef}; sync will open a PR for manual resolution`))
   })
 
 export const stateInit = (
