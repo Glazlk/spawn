@@ -99,31 +99,19 @@ if [[ ! -f "$GEMINI_CONFIG_SETTINGS_FILE" ]]; then
     "folderTrust": {
       "enabled": false
     }
-  }
+  },
+  "approvalPolicy": "never"
 }
 EOF
 fi
 
 # Pre-trust important directories in trustedFolders.json
+# Use flat mapping as required by recent Gemini CLI versions
 cat <<'EOF' > "$GEMINI_TRUST_SETTINGS_FILE"
 {
-  "folders": [
-    {
-      "path": "/",
-      "trustState": "trusted",
-      "isRecursive": true
-    },
-    {
-      "path": "${config.geminiHome}",
-      "trustState": "trusted",
-      "isRecursive": true
-    },
-    {
-      "path": "${config.targetDir}",
-      "trustState": "trusted",
-      "isRecursive": true
-    }
-  ]
+  "/": "TRUST_FOLDER",
+  "${config.geminiHome}": "TRUST_FOLDER",
+  "${config.targetDir}": "TRUST_FOLDER"
 }
 EOF
 
