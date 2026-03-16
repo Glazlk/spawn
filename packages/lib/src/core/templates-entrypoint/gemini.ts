@@ -49,7 +49,18 @@ docker_git_link_gemini_file() {
 # Link .api-key, .env, and .gemini directory from central auth storage to container home
 docker_git_link_gemini_file "$GEMINI_CONFIG_DIR/.api-key" "$GEMINI_HOME_DIR/.api-key"
 docker_git_link_gemini_file "$GEMINI_CONFIG_DIR/.env" "$GEMINI_HOME_DIR/.env"
-docker_git_link_gemini_file "$GEMINI_CONFIG_DIR/.gemini" "$GEMINI_HOME_DIR/.gemini"
+
+# Special case for .gemini folder: we want the folder itself to be the link if it doesn't exist
+# or its content to be linked if we want to manage it.
+if [[ -d "$GEMINI_CONFIG_DIR/.gemini" ]]; then
+  if [[ -L "$GEMINI_HOME_DIR" ]]; then
+    rm -f "$GEMINI_HOME_DIR"
+  elif [[ -d "$GEMINI_HOME_DIR" ]]; then
+    # If it's a real directory, move it aside if it's empty or just has our managed files
+    mv "$GEMINI_HOME_DIR" "$GEMINI_HOME_DIR.bak-$(date +%s)" || true
+  fi
+  ln -sfn "$GEMINI_CONFIG_DIR/.gemini" "$GEMINI_HOME_DIR"
+fi
 
 docker_git_refresh_gemini_env() {
   # If .api-key exists, export it as GEMINI_API_KEY
@@ -73,10 +84,11 @@ const renderGeminiAuthConfig = (config: TemplateConfig): string =>
 
 const renderGeminiPermissionSettingsConfig = (config: TemplateConfig): string =>
   String.raw`# Gemini CLI: keep trust settings in sync with docker-git defaults
-GEMINI_SETTINGS_DIR="${config.geminiHome}/.gemini"
+GEMINI_SETTINGS_DIR="${config.geminiHome}"
 GEMINI_TRUST_SETTINGS_FILE="$GEMINI_SETTINGS_DIR/trustedFolders.json"
 GEMINI_CONFIG_SETTINGS_FILE="$GEMINI_SETTINGS_DIR/settings.json"
 
+# Wait for symlink to be established by the auth config step
 mkdir -p "$GEMINI_SETTINGS_DIR" || true
 
 # Disable folder trust prompt in settings.json
