@@ -106,35 +106,25 @@ try {
   if (!isRecord(settings)) settings = {}
 } catch {}
 
-const nextSettings = {
-  ...settings,
-  security: {
-    ...(isRecord(settings.security) ? settings.security : {}),
-    folderTrust: {
-      ...(isRecord(settings.security?.folderTrust) ? settings.security.folderTrust : {}),
-      enabled: false
-    }
-  },
-  approvalPolicy: "never"
-}
+const nextSettings = JSON.parse(JSON.stringify(settings))
 
-// Auto-detect auth method if not set
-const currentAuth = nextSettings.security.auth
-if (!isRecord(currentAuth) || !currentAuth.selectedType) {
-  const settingsDir = path.dirname(settingsPath)
-  const configDir = process.env.GEMINI_CONFIG_DIR || ""
-  
-  const hasOauth = fs.existsSync(path.join(settingsDir, "oauth_creds.json")) || 
-                   (configDir && fs.existsSync(path.join(configDir, ".gemini", "oauth_creds.json")))
-  
-  const hasApiKey = fs.existsSync(path.join(settingsDir, "..", ".api-key")) ||
-                    (configDir && fs.existsSync(path.join(configDir, ".api-key")))
+if (!isRecord(nextSettings.security)) nextSettings.security = {}
+if (!isRecord(nextSettings.security.folderTrust)) nextSettings.security.folderTrust = {}
 
-  if (hasOauth) {
-    nextSettings.security.auth = { ...(isRecord(currentAuth) ? currentAuth : {}), selectedType: "oauth-personal" }
-  } else if (hasApiKey) {
-    nextSettings.security.auth = { ...(isRecord(currentAuth) ? currentAuth : {}), selectedType: "api-key" }
-  }
+nextSettings.security.folderTrust.enabled = false
+nextSettings.approvalPolicy = "never"
+
+// Force auth method detection
+const settingsDir = path.dirname(settingsPath)
+const oauthPath = path.join(settingsDir, "oauth_creds.json")
+const apiKeyPath = path.join(settingsDir, "..", ".api-key")
+
+if (fs.existsSync(oauthPath)) {
+  if (!isRecord(nextSettings.security.auth)) nextSettings.security.auth = {}
+  nextSettings.security.auth.selectedType = "oauth-personal"
+} else if (fs.existsSync(apiKeyPath)) {
+  if (!isRecord(nextSettings.security.auth)) nextSettings.security.auth = {}
+  nextSettings.security.auth.selectedType = "api-key"
 }
 
 if (JSON.stringify(settings) !== JSON.stringify(nextSettings)) {
@@ -174,6 +164,8 @@ const renderGeminiProfileSetup = (config: TemplateConfig): string =>
   String.raw`GEMINI_PROFILE="/etc/profile.d/gemini-config.sh"
 printf "export GEMINI_AUTH_LABEL=%q\n" "$GEMINI_AUTH_LABEL" > "$GEMINI_PROFILE"
 printf "export GEMINI_HOME=%q\n" "${config.geminiHome}" >> "$GEMINI_PROFILE"
+printf "export GEMINI_CLI_DISABLE_UPDATE_CHECK=true\n" >> "$GEMINI_PROFILE"
+printf "export GEMINI_CLI_NONINTERACTIVE=true\n" >> "$GEMINI_PROFILE"
 cat <<'EOF' >> "$GEMINI_PROFILE"
 if [[ -f "$GEMINI_HOME/.api-key" ]]; then
   export GEMINI_API_KEY="$(cat "$GEMINI_HOME/.api-key" | tr -d '\r\n')"
@@ -182,7 +174,9 @@ EOF
 chmod 0644 "$GEMINI_PROFILE" || true
 
 docker_git_upsert_ssh_env "GEMINI_AUTH_LABEL" "$GEMINI_AUTH_LABEL"
-docker_git_upsert_ssh_env "GEMINI_API_KEY" "${"$"}{GEMINI_API_KEY:-}"`
+docker_git_upsert_ssh_env "GEMINI_API_KEY" "${GEMINI_API_KEY:-}"
+docker_git_upsert_ssh_env "GEMINI_CLI_DISABLE_UPDATE_CHECK" "true"
+docker_git_upsert_ssh_env "GEMINI_CLI_NONINTERACTIVE" "true"`
 
 const entrypointGeminiNoticeTemplate = String.raw`# Ensure global GEMINI.md exists for container context
 GEMINI_MD_PATH="__GEMINI_HOME__/GEMINI.md"

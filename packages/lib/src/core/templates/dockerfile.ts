@@ -61,7 +61,7 @@ RUN set -eu; \
 RUN oh-my-opencode --version
 RUN npm install -g @anthropic-ai/claude-code@latest
 RUN claude --version
-RUN npm install -g @google/gemini-cli@latest
+RUN npm install -g @google/gemini-cli@latest --force
 RUN gemini --version`
 
 const renderDockerfileOpenCode = (): string =>
