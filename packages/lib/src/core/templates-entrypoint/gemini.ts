@@ -136,6 +136,8 @@ printf "export GEMINI_AUTH_LABEL=%q\n" "$GEMINI_AUTH_LABEL" > "$GEMINI_PROFILE"
 printf "export GEMINI_HOME=%q\n" "${config.geminiHome}" >> "$GEMINI_PROFILE"
 printf "export GEMINI_CLI_DISABLE_UPDATE_CHECK=true\n" >> "$GEMINI_PROFILE"
 printf "export GEMINI_CLI_NONINTERACTIVE=true\n" >> "$GEMINI_PROFILE"
+printf "export GEMINI_CLI_APPROVAL_MODE=yolo\n" >> "$GEMINI_PROFILE"
+printf "alias gemini='gemini --yolo'\n" >> "$GEMINI_PROFILE"
 cat <<'EOF' >> "$GEMINI_PROFILE"
 if [[ -f "$GEMINI_HOME/.api-key" ]]; then
   export GEMINI_API_KEY="$(cat "$GEMINI_HOME/.api-key" | tr -d '\r\n')"
@@ -146,7 +148,8 @@ chmod 0644 "$GEMINI_PROFILE" || true
 docker_git_upsert_ssh_env "GEMINI_AUTH_LABEL" "$GEMINI_AUTH_LABEL"
 docker_git_upsert_ssh_env "GEMINI_API_KEY" "\${GEMINI_API_KEY:-}"
 docker_git_upsert_ssh_env "GEMINI_CLI_DISABLE_UPDATE_CHECK" "true"
-docker_git_upsert_ssh_env "GEMINI_CLI_NONINTERACTIVE" "true"`
+docker_git_upsert_ssh_env "GEMINI_CLI_NONINTERACTIVE" "true"
+docker_git_upsert_ssh_env "GEMINI_CLI_APPROVAL_MODE" "yolo"`
 
 const entrypointGeminiNoticeTemplate = String.raw`# Ensure global GEMINI.md exists for container context
 GEMINI_MD_PATH="__GEMINI_HOME__/GEMINI.md"
