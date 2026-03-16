@@ -60,12 +60,18 @@ const detectAuthResult = (output: string): GeminiAuthResult => {
   return "pending"
 }
 
+// Fixed port for Gemini CLI OAuth callback server
+// WHY: Using a fixed port allows Docker port forwarding to work
+// SOURCE: https://github.com/google-gemini/gemini-cli/issues/2040
+const geminiOauthCallbackPort = 38_751
+
 type DockerGeminiAuthSpec = {
   readonly cwd: string
   readonly image: string
   readonly hostPath: string
   readonly containerPath: string
   readonly env: ReadonlyArray<string>
+  readonly callbackPort: number
 }
 
 const buildDockerGeminiAuthSpec = (
@@ -78,15 +84,27 @@ const buildDockerGeminiAuthSpec = (
   image,
   hostPath: accountPath,
   containerPath,
+  callbackPort: geminiOauthCallbackPort,
   env: [
     `HOME=${containerPath}`,
     "NO_BROWSER=true",
-    "GEMINI_CLI_NONINTERACTIVE=false"
+    "GEMINI_CLI_NONINTERACTIVE=false",
+    `OAUTH_CALLBACK_PORT=${geminiOauthCallbackPort}`,
+    "OAUTH_CALLBACK_HOST=0.0.0.0"
   ]
 })
 
 const buildDockerGeminiAuthArgs = (spec: DockerGeminiAuthSpec): ReadonlyArray<string> => {
-  const base: Array<string> = ["run", "--rm", "-i", "-t", "-v", `${spec.hostPath}:${spec.containerPath}`]
+  const base: Array<string> = [
+    "run",
+    "--rm",
+    "-i",
+    "-t",
+    "-v",
+    `${spec.hostPath}:${spec.containerPath}`,
+    "-p",
+    `${spec.callbackPort}:${spec.callbackPort}`
+  ]
   const dockerUser = resolveDefaultDockerUser()
   if (dockerUser !== null) {
     base.push("--user", dockerUser)
@@ -98,8 +116,10 @@ const buildDockerGeminiAuthArgs = (spec: DockerGeminiAuthSpec): ReadonlyArray<st
     }
     base.push("-e", trimmed)
   }
-  // Run gemini CLI - it will prompt for OAuth authentication with NO_BROWSER=true
-  return [...base, spec.image, "gemini"]
+  // Run gemini CLI with --debug flag to ensure auth URL is shown
+  // WHY: In some Gemini CLI versions, auth URL is only shown with --debug flag
+  // SOURCE: https://github.com/google-gemini/gemini-cli/issues/13853
+  return [...base, spec.image, "gemini", "--debug"]
 }
 
 const startDockerProcess = (
@@ -179,8 +199,30 @@ const resolveGeminiLoginResult = (
     // (user may have completed auth flow successfully)
   })
 
-// CHANGE: run Gemini CLI OAuth login with interactive prompt
-// WHY: Gemini CLI with NO_BROWSER=true shows auth URL and waits for user to paste authorization code
+// CHANGE: print OAuth instructions before starting the flow
+// WHY: help users understand how to complete OAuth in Docker environment
+// QUOTE(ТЗ): "Мне надо что бы он её умел принимать, типо ждал пока мы вставим ссылку"
+// REF: issue-146, PR-147 comment from skulidropek
+// SOURCE: https://github.com/google-gemini/gemini-cli
+// PURITY: SHELL
+// COMPLEXITY: O(1)
+const printOauthInstructions = (): Effect.Effect<void> =>
+  Effect.sync(() => {
+    const port = geminiOauthCallbackPort
+    process.stderr.write("\n")
+    process.stderr.write("╔═══════════════════════════════════════════════════════════════════════════╗\n")
+    process.stderr.write("║                    Gemini CLI OAuth Authentication                        ║\n")
+    process.stderr.write("╠═══════════════════════════════════════════════════════════════════════════╣\n")
+    process.stderr.write("║ 1. Copy the auth URL shown below and open it in your browser              ║\n")
+    process.stderr.write("║ 2. Sign in with your Google account                                       ║\n")
+    process.stderr.write(`║ 3. After authentication, the browser will redirect to localhost:${port}    ║\n`)
+    process.stderr.write("║ 4. The callback will be captured automatically (port is forwarded)        ║\n")
+    process.stderr.write("╚═══════════════════════════════════════════════════════════════════════════╝\n")
+    process.stderr.write("\n")
+  })
+
+// CHANGE: run Gemini CLI OAuth login with interactive prompt and port forwarding
+// WHY: Gemini CLI OAuth callback now works in Docker via fixed port forwarding
 // QUOTE(ТЗ): "Типо ждал пока мы вставим ссылку"
 // REF: issue-146, PR-147 comment
 // SOURCE: https://github.com/google-gemini/gemini-cli
@@ -199,6 +241,8 @@ export const runGeminiOauthLoginWithPrompt = (
 ): Effect.Effect<void, AuthError | CommandFailedError | PlatformError, CommandExecutor.CommandExecutor> =>
   Effect.scoped(
     Effect.gen(function*(_) {
+      yield* _(printOauthInstructions())
+
       const executor = yield* _(CommandExecutor.CommandExecutor)
       const hostPath = yield* _(resolveDockerVolumeHostPath(cwd, accountPath))
       const spec = buildDockerGeminiAuthSpec(cwd, hostPath, options.image, options.containerPath)
