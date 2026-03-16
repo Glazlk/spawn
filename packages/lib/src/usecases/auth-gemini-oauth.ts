@@ -158,7 +158,7 @@ const cleanupExistingContainers = (
           cwd: process.cwd(),
           command: "docker",
           args: ["rm", "-f", ...ids]
-        }).pipe(Effect.catchAll(() => Effect.succeed(0)))
+        }).pipe(Effect.orElse(() => Effect.succeed(0)))
       )
     }
   })
@@ -287,7 +287,7 @@ const fixGeminiAuthPermissions = (hostPath: string, containerPath: string) =>
     ]
   }).pipe(
     Effect.tapError((err) => Effect.logWarning(`Failed to fix Gemini auth permissions: ${String(err)}`)),
-    Effect.catchAll(() => Effect.succeed(0))
+    Effect.orElse(() => Effect.succeed(0))
   )
 
 // QUOTE(ТЗ): "Типо ждал пока мы вставим ссылку"

@@ -284,12 +284,12 @@ const prepareGeminiCredentialsDir = (
         args: ["run", "--rm", "-v", `${accountPath}:/target`, "alpine", "rm", "-rf", "/target/.gemini"]
       }),
       Effect.asVoid,
-      Effect.catchAll(() => Effect.void)
+      Effect.orElse(() => Effect.void)
     )
 
     yield* _(
       fs.remove(credentialsDir, { recursive: true, force: true }).pipe(
-        Effect.catchAll(() => removeFallback)
+        Effect.orElse(() => removeFallback)
       )
     )
     yield* _(fs.makeDirectory(credentialsDir, { recursive: true }))
