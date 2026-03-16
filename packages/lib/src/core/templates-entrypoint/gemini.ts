@@ -46,7 +46,7 @@ docker_git_link_gemini_file() {
   ln -sfn "$source_path" "$link_path" || true
 }
 
-# Link .api-key, .env, and .gemini directory from central auth storage to container home
+# Link .api-key and .env from central auth storage to container home
 docker_git_link_gemini_file "$GEMINI_CONFIG_DIR/.api-key" "$GEMINI_HOME_DIR/.api-key"
 docker_git_link_gemini_file "$GEMINI_CONFIG_DIR/.env" "$GEMINI_HOME_DIR/.env"
 
@@ -174,7 +174,7 @@ EOF
 chmod 0644 "$GEMINI_PROFILE" || true
 
 docker_git_upsert_ssh_env "GEMINI_AUTH_LABEL" "$GEMINI_AUTH_LABEL"
-docker_git_upsert_ssh_env "GEMINI_API_KEY" "${GEMINI_API_KEY:-}"
+docker_git_upsert_ssh_env "GEMINI_API_KEY" "\${GEMINI_API_KEY:-}"
 docker_git_upsert_ssh_env "GEMINI_CLI_DISABLE_UPDATE_CHECK" "true"
 docker_git_upsert_ssh_env "GEMINI_CLI_NONINTERACTIVE" "true"`
 
