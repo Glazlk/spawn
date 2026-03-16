@@ -98,9 +98,9 @@ if [[ ! -f "$GEMINI_CONFIG_SETTINGS_FILE" ]]; then
   "security": {
     "folderTrust": {
       "enabled": false
-    }
-  },
-  "approvalPolicy": "never"
+    },
+    "approvalPolicy": "never"
+  }
 }
 EOF
 fi

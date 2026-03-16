@@ -347,9 +347,9 @@ export const authGeminiLoginOauth = (
                 },
                 auth: {
                   selectedType: "oauth-personal"
-                }
-              },
-              approvalPolicy: "never"
+                },
+                approvalPolicy: "never"
+              }
             }, null, 2) + "\n"
           )
         )
