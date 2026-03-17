@@ -1,8 +1,9 @@
-<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="240" height="240" rx="24" fill="#080806"/>
-  <g transform="translate(60, 60) scale(1.875)">
+<svg width="480" height="240" viewBox="0 0 480 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="480" height="240" rx="24" fill="#080806"/>
+  <g transform="translate(40, 42) scale(2.4)">
     <path d="M8 11 L31 32 L8 53" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M22 11 L45 32 L22 53" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.38"/>
     <path d="M36 17 L54 32 L36 47" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
   </g>
+  <text x="200" y="148" font-family="'Courier New', 'SF Mono', monospace" font-size="72" font-weight="900" letter-spacing="12" fill="#F0EDE8">SP<tspan fill="#E8521A">A</tspan>WN</text>
 </svg>

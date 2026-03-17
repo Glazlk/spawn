@@ -1,6 +1,6 @@
 <!-- HERO -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/logo.svg" width="80" alt="spawn logo" />
+  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/logo.svg" width="200" alt="spawn logo" />
 </p>
 
 <h1 align="center">
@@ -127,15 +127,6 @@ Optional Chromium sidecar. Claude Code gets full browser automation through MCP 
 | `spawn open <url>` | Re-enter an existing environment. |
 | `spawn list` | All live containers. What's running, what's done. |
 | `spawn status` | Current environment status. |
-
----
-
-## Key Stats
-
-| | |
-|---|---|
-| **1** command to start | **∞** parallel tasks |
-| **0** env conflicts | **2** AI agents inside |
 
 ---
 
