@@ -1,6 +1,6 @@
-import { runCommandWithExitCodes } from "@effect-template/lib/shell/command-runner"
-import { CommandFailedError } from "@effect-template/lib/shell/errors"
-import { defaultProjectsRoot } from "@effect-template/lib/usecases/path-helpers"
+import { runCommandWithExitCodes } from "@spawn-dev/lib/shell/command-runner"
+import { CommandFailedError } from "@spawn-dev/lib/shell/errors"
+import { defaultProjectsRoot } from "@spawn-dev/lib/usecases/path-helpers"
 import { Effect } from "effect"
 import { randomUUID } from "node:crypto"
 import { promises as fs } from "node:fs"
@@ -87,7 +87,7 @@ const buildAgentScript = (
   envEntries: ReadonlyArray<{ readonly key: string; readonly value: string }>,
   command: string
 ): string => {
-  const pidFile = `/tmp/docker-git-agent-${sessionId}.pid`
+  const pidFile = `/tmp/spawn-agent-${sessionId}.pid`
   const exports = envEntries
     .map(({ key, value }) => `export ${key}=${shellEscape(value)}`)
     .join("\n")
@@ -216,7 +216,7 @@ const getRecordOrFail = (
 const endedStatuses: ReadonlySet<AgentSession["status"]> = new Set(["stopped", "exited", "failed"])
 
 const killAgentScript = (sessionId: string): string => {
-  const pidFile = `/tmp/docker-git-agent-${sessionId}.pid`
+  const pidFile = `/tmp/spawn-agent-${sessionId}.pid`
   return [
     "set -eu",
     `PID_FILE=${shellEscape(pidFile)}`,
@@ -296,7 +296,7 @@ export const startAgent = (
     try: () => {
       const command = buildCommand(request)
       const sessionId = randomUUID()
-      const pidFile = `/tmp/docker-git-agent-${sessionId}.pid`
+      const pidFile = `/tmp/spawn-agent-${sessionId}.pid`
       const label = sourceLabel(request)
       const startedAt = nowIso()
       const workingDir = request.cwd?.trim() || project.targetDir

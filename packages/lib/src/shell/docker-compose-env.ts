@@ -10,13 +10,13 @@ export const composeSpec = (cwd: string, args: ReadonlyArray<string>) => ({
 })
 
 const resolveProjectsRootCandidate = (): string | null => {
-  const explicit = resolveDockerEnvValue("DOCKER_GIT_PROJECTS_ROOT")
+  const explicit = resolveDockerEnvValue("SPAWN_PROJECTS_ROOT")
   if (explicit !== null) {
     return explicit
   }
 
   const home = resolveDockerEnvValue("HOME") ?? resolveDockerEnvValue("USERPROFILE")
-  return home === null ? null : `${trimDockerPathTrailingSlash(home)}/.docker-git`
+  return home === null ? null : `${trimDockerPathTrailingSlash(home)}/.spawn`
 }
 
 export const resolveDockerComposeEnv = (
@@ -29,5 +29,5 @@ export const resolveDockerComposeEnv = (
     }
 
     const remappedProjectsRoot = yield* _(resolveDockerVolumeHostPath(cwd, projectsRoot))
-    return remappedProjectsRoot === projectsRoot ? {} : { DOCKER_GIT_PROJECTS_ROOT_HOST: remappedProjectsRoot }
+    return remappedProjectsRoot === projectsRoot ? {} : { SPAWN_PROJECTS_ROOT_HOST: remappedProjectsRoot }
   })

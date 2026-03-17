@@ -5,10 +5,10 @@ RUN_ID="$(date +%s)-$RANDOM"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$REPO_ROOT/scripts/e2e/_lib.sh"
-ROOT_BASE="${DOCKER_GIT_E2E_ROOT_BASE:-$REPO_ROOT/.docker-git/e2e-root}"
+ROOT_BASE="${SPAWN_E2E_ROOT_BASE:-$REPO_ROOT/.spawn/e2e-root}"
 mkdir -p "$ROOT_BASE"
 ROOT="$(mktemp -d "$ROOT_BASE/login-context.XXXXXX")"
-# docker-git containers may `chown -R` the `.docker-git` bind mount to UID 1000.
+# spawn containers may `chown -R` the `.spawn` bind mount to UID 1000.
 # Use world-writable permissions so the host runner can still create files
 # even if ownership changes inside the container.
 chmod 0777 "$ROOT"
@@ -18,8 +18,8 @@ KEEP="${KEEP:-0}"
 
 dg_ensure_docker "$ROOT/.e2e-bin"
 
-export DOCKER_GIT_PROJECTS_ROOT="$ROOT"
-export DOCKER_GIT_STATE_AUTO_SYNC=0
+export SPAWN_PROJECTS_ROOT="$ROOT"
+export SPAWN_STATE_AUTO_SYNC=0
 
 ACTIVE_OUT_DIR=""
 ACTIVE_CONTAINER=""
@@ -77,18 +77,18 @@ run_case() {
   local case_name="$1"
   local repo_url="$2"
   local expected_context_line="$3"
-  local out_dir_rel=".docker-git/e2e/login-context-${case_name}-${RUN_ID}"
+  local out_dir_rel=".spawn/e2e/login-context-${case_name}-${RUN_ID}"
   local out_dir="$ROOT/e2e/login-context-${case_name}-${RUN_ID}"
   local container_name="dg-e2e-login-${case_name}-${RUN_ID}"
   local service_name="dg-e2e-login-${case_name}-${RUN_ID}"
   local volume_name="dg-e2e-login-${case_name}-${RUN_ID}-home"
   local ssh_port="$(( (RANDOM % 1000) + 21000 ))"
-  local login_log="/tmp/docker-git-login-context-${RUN_ID}-${case_name}.log"
+  local login_log="/tmp/spawn-login-context-${RUN_ID}-${case_name}.log"
 
   mkdir -p "$out_dir/.orch/env"
   chmod 0777 "$out_dir" "$out_dir/.orch" "$out_dir/.orch/env"
   cat > "$out_dir/.orch/env/project.env" <<'EOF_ENV'
-# docker-git project env (e2e)
+# spawn project env (e2e)
 CODEX_AUTO_UPDATE=0
 CODEX_SHARE_AUTH=1
 EOF_ENV
@@ -99,7 +99,7 @@ EOF_ENV
 
   (
     cd "$REPO_ROOT"
-    pnpm run docker-git clone "$repo_url" \
+    pnpm run spawn clone "$repo_url" \
       --force \
       --no-ssh \
       --authorized-keys "$ROOT/authorized_keys" \

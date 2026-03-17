@@ -16,7 +16,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-force-env-"
+          prefix: "spawn-force-env-"
         })
       )
       return yield* _(use(tempDir))
@@ -33,7 +33,7 @@ const makeGlobalConfig = (root: string, path: Path.Path): TemplateConfig => ({
   gitTokenLabel: undefined,
   targetDir: "/home/dev/org/repo",
   volumeName: "dg-test-home",
-  dockerGitPath: path.join(root, ".docker-git"),
+  dockerGitPath: path.join(root, ".spawn"),
   authorizedKeysPath: path.join(root, "authorized_keys"),
   envGlobalPath: path.join(root, ".orch/env/global.env"),
   envProjectPath: path.join(root, ".orch/env/project.env"),
@@ -41,7 +41,7 @@ const makeGlobalConfig = (root: string, path: Path.Path): TemplateConfig => ({
   codexSharedAuthPath: path.join(root, ".orch/auth/codex-shared"),
   codexHome: "/home/dev/.codex",
   dockerNetworkMode: "shared",
-  dockerSharedNetworkName: "docker-git-shared",
+  dockerSharedNetworkName: "spawn-shared",
   enableMcpPlaywright: false,
   pnpmVersion: "10.27.0"
 })
@@ -65,7 +65,7 @@ const makeProjectConfig = (
   claudeAuthLabel,
   targetDir: "/home/dev/org/repo",
   volumeName: "dg-test-home",
-  dockerGitPath: path.join(outDir, ".docker-git"),
+  dockerGitPath: path.join(outDir, ".spawn"),
   authorizedKeysPath: path.join(outDir, "authorized_keys"),
   envGlobalPath: path.join(outDir, ".orch/env/global.env"),
   envProjectPath: path.join(outDir, ".orch/env/project.env"),
@@ -73,7 +73,7 @@ const makeProjectConfig = (
   codexSharedAuthPath: path.join(outDir, ".orch/auth/codex-shared"),
   codexHome: "/home/dev/.codex",
   dockerNetworkMode: "shared",
-  dockerSharedNetworkName: "docker-git-shared",
+  dockerSharedNetworkName: "spawn-shared",
   enableMcpPlaywright,
   pnpmVersion: "10.27.0"
 })
@@ -131,7 +131,7 @@ describe("prepareProjectFiles", () => {
           "curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 https://bun.sh/install -o /tmp/bun-install.sh"
         )
         expect(dockerfile).toContain("bun install attempt ${attempt} failed; retrying...")
-        expect(entrypoint).toContain('DOCKER_GIT_HOME="/home/dev/.docker-git"')
+        expect(entrypoint).toContain('SPAWN_HOME="/home/dev/.spawn"')
         expect(entrypoint).toContain('SOURCE_SHARED_AUTH="/home/dev/.codex-shared/auth.json"')
         expect(entrypoint).toContain('CODEX_LABEL_RAW="$CODEX_AUTH_LABEL"')
         expect(entrypoint).toContain('OPENCODE_DATA_DIR="/home/dev/.local/share/opencode"')
@@ -149,11 +149,11 @@ describe("prepareProjectFiles", () => {
         expect(entrypoint).not.toContain("\n  EOFMOVE\n")
         expect(composeBefore).toContain("container_name: dg-test")
         expect(composeBefore).toContain("restart: unless-stopped")
-        expect(composeBefore).toContain(":/home/dev/.docker-git")
+        expect(composeBefore).toContain(":/home/dev/.spawn")
         expect(composeBefore).toContain("cpus:")
         expect(composeBefore).toContain('mem_limit: "')
         expect(composeBefore).not.toContain("dg-test-browser")
-        expect(composeBefore).toContain("docker-git-shared")
+        expect(composeBefore).toContain("spawn-shared")
         expect(composeBefore).toContain("external: true")
 
         yield* _(
@@ -164,7 +164,7 @@ describe("prepareProjectFiles", () => {
         )
 
         const composeAfter = yield* _(fs.readFileString(path.join(outDir, "docker-compose.yml")))
-        const configAfterText = yield* _(fs.readFileString(path.join(outDir, "docker-git.json")))
+        const configAfterText = yield* _(fs.readFileString(path.join(outDir, "spawn.json")))
         const configAfter = yield* _(Effect.sync((): unknown => JSON.parse(configAfterText)))
 
         expect(composeAfter).toContain("dg-test-browser")
@@ -176,7 +176,7 @@ describe("prepareProjectFiles", () => {
         expect(composeAfter).toContain("container_name: dg-test")
         expect(composeAfter).toContain("container_name: dg-test-browser")
         expect(composeAfter).toContain("container_name: dg-test-browser\n    restart: unless-stopped")
-        expect(composeAfter).toContain("docker-git-shared")
+        expect(composeAfter).toContain("spawn-shared")
         expect(composeAfter).toContain("external: true")
         expect(readEnableMcpPlaywrightFlag(configAfter)).toBe(true)
         expect(configAfterText).toContain('"cpuLimit": "30%"')

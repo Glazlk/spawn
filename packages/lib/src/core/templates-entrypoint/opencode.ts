@@ -199,7 +199,7 @@ EOF
 fi`
 
 // CHANGE: bootstrap OpenCode config (permissions + plugins) and share OpenCode auth.json across projects
-// WHY: make OpenCode usable out-of-the-box inside disposable docker-git containers
+// WHY: make OpenCode usable out-of-the-box inside disposable spawn containers
 // QUOTE(ТЗ): "Preinstall OpenCode and oh-my-opencode with full authorization of existing tools"
 // REF: issue-34
 // SOURCE: n/a

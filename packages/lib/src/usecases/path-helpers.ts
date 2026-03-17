@@ -45,14 +45,14 @@ const trimTrailingSlash = (value: string): string => {
 
 export const defaultProjectsRoot = (cwd: string): string => {
   const home = resolveHomeDir()
-  const explicit = process.env["DOCKER_GIT_PROJECTS_ROOT"]?.trim()
+  const explicit = process.env["SPAWN_PROJECTS_ROOT"]?.trim()
   if (explicit && explicit.length > 0) {
     return expandHome(explicit, home)
   }
   if (home !== null) {
-    return `${trimTrailingSlash(home)}/.docker-git`
+    return `${trimTrailingSlash(home)}/.spawn`
   }
-  return `${cwd}/.docker-git`
+  return `${cwd}/.spawn`
 }
 
 const normalizeRelativePath = (value: string): string =>
@@ -71,10 +71,10 @@ export const resolvePathFromCwd = (
     : (() => {
       const projectsRoot = path.resolve(defaultProjectsRoot(cwd))
       const normalized = normalizeRelativePath(targetPath)
-      if (normalized === ".docker-git") {
+      if (normalized === ".spawn") {
         return projectsRoot
       }
-      const prefix = ".docker-git/"
+      const prefix = ".spawn/"
       if (normalized.startsWith(prefix)) {
         return path.join(projectsRoot, normalized.slice(prefix.length))
       }
@@ -189,14 +189,14 @@ export const findKeyByPriority = (
   })
 
 const authorizedKeysSpec: KeyLookupSpec = {
-  envVar: "DOCKER_GIT_AUTHORIZED_KEYS",
+  envVar: "SPAWN_AUTHORIZED_KEYS",
   devKeyName: "dev_ssh_key.pub",
   fallbackName: "authorized_keys",
   homeCandidates: ["id_ed25519.pub", "id_rsa.pub"]
 }
 
 const sshPrivateKeySpec: KeyLookupSpec = {
-  envVar: "DOCKER_GIT_SSH_KEY",
+  envVar: "SPAWN_SSH_KEY",
   devKeyName: "dev_ssh_key",
   homeCandidates: ["id_ed25519", "id_rsa"]
 }

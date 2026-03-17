@@ -129,7 +129,7 @@ const gcNetworkByName = (
                   error instanceof Error ? error.message : String(error)
                 }`
               ),
-            onSuccess: () => Effect.log(`Removed detached docker-git network: ${networkName}`)
+            onSuccess: () => Effect.log(`Removed detached spawn network: ${networkName}`)
           })
         )
       }
@@ -138,7 +138,7 @@ const gcNetworkByName = (
   )
 }
 
-// CHANGE: garbage-collect detached project-scoped docker-git networks
+// CHANGE: garbage-collect detached project-scoped spawn networks
 // WHY: prevent stale networks from exhausting Docker address pools
 // QUOTE(ТЗ): "убирать мусорные сети автоматически"
 // REF: user-request-2026-02-20-network-gc

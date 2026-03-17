@@ -24,7 +24,7 @@ export type DockerImageSpec = {
 // FORMAT THEOREM: forall i: ensure(i) -> image_exists(i)
 // PURITY: SHELL
 // EFFECT: Effect<void, CommandFailedError | PlatformError, CommandExecutor>
-// INVARIANT: image name is stable for docker-git auth
+// INVARIANT: image name is stable for spawn auth
 // COMPLEXITY: O(command)
 export const ensureDockerImage = (
   fs: FileSystem,

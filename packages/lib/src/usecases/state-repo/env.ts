@@ -8,8 +8,8 @@ export const isFalsyEnv = (value: string): boolean => {
   return normalized === "0" || normalized === "false" || normalized === "no" || normalized === "off"
 }
 
-export const autoSyncEnvKey = "DOCKER_GIT_STATE_AUTO_SYNC"
-export const autoSyncStrictEnvKey = "DOCKER_GIT_STATE_AUTO_SYNC_STRICT"
+export const autoSyncEnvKey = "SPAWN_STATE_AUTO_SYNC"
+export const autoSyncStrictEnvKey = "SPAWN_STATE_AUTO_SYNC_STRICT"
 
 export const defaultSyncMessage = "chore(state): sync"
 

@@ -68,9 +68,9 @@ const resolveNames = (
   projectSlug: string
 ): Either.Either<NameConfig, ParseError> =>
   Either.gen(function*(_) {
-    const derivedContainerName = `dg-${projectSlug}`
-    const derivedServiceName = `dg-${projectSlug}`
-    const derivedVolumeName = `dg-${projectSlug}-home`
+    const derivedContainerName = `spawn-${projectSlug}`
+    const derivedServiceName = `spawn-${projectSlug}`
+    const derivedVolumeName = `spawn-${projectSlug}-home`
     const containerName = yield* _(
       nonEmpty("--container-name", raw.containerName, derivedContainerName)
     )
@@ -120,7 +120,7 @@ const buildDefaultPathConfig = (
       geminiAuthPath: defaultTemplateConfig.geminiAuthPath
     }
     : {
-      // NOTE: Keep docker-git root mount stable (projects root) so caches like
+      // NOTE: Keep spawn root mount stable (projects root) so caches like
       // `.cache/git-mirrors` remain outside the secrets dir.
       dockerGitPath: defaultTemplateConfig.dockerGitPath,
       authorizedKeysPath: defaultTemplateConfig.authorizedKeysPath,
@@ -152,7 +152,7 @@ const resolvePaths = (
     const codexHome = yield* _(nonEmpty("--codex-home", raw.codexHome, defaultTemplateConfig.codexHome))
     const geminiAuthPath = defaults.geminiAuthPath
     const geminiHome = defaultTemplateConfig.geminiHome
-    const outDir = yield* _(nonEmpty("--out-dir", raw.outDir, `.docker-git/${repoPath}`))
+    const outDir = yield* _(nonEmpty("--out-dir", raw.outDir, `.spawn/${repoPath}`))
 
     return {
       dockerGitPath,

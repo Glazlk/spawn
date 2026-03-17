@@ -21,7 +21,7 @@ import { stateInit } from "../../src/usecases/state-repo.js"
 // Helpers
 // ---------------------------------------------------------------------------
 
-// GIT_CONFIG_NOSYSTEM=1 bypasses system-level git hooks (e.g. the docker-git
+// GIT_CONFIG_NOSYSTEM=1 bypasses system-level git hooks (e.g. the spawn
 // pre-push hook that blocks pushes to `main`).  Only used in test seeding, not
 // in the code-under-test.
 const seedEnv: Record<string, string> = { GIT_CONFIG_NOSYSTEM: "1" }
@@ -116,7 +116,7 @@ const makeFakeRemote = (
       yield* _(captureGit(["config", "user.email", "test@example.com"], seedDir))
       yield* _(captureGit(["config", "user.name", "Test"], seedDir))
       yield* _(captureGit(["remote", "add", "origin", remotePath], seedDir))
-      yield* _(runShell(`echo "# .docker-git" > "${seedDir}/README.md"`, seedDir))
+      yield* _(runShell(`echo "# .spawn" > "${seedDir}/README.md"`, seedDir))
       yield* _(captureGit(["add", "-A"], seedDir))
       yield* _(captureGit(["commit", "-m", "initial"], seedDir))
       yield* _(captureGit(["push", "origin", "HEAD:refs/heads/main"], seedDir))
@@ -127,8 +127,8 @@ const makeFakeRemote = (
 
 /**
  * Run an Effect inside a freshly created temp directory, cleaning up after.
- * Also overrides DOCKER_GIT_PROJECTS_ROOT so stateInit uses the temp dir
- * instead of the real ~/.docker-git.
+ * Also overrides SPAWN_PROJECTS_ROOT so stateInit uses the temp dir
+ * instead of the real ~/.spawn.
  */
 const withTempStateRoot = <A, E, R>(
   use: (opts: { tempBase: string; stateRoot: string }) => Effect.Effect<A, E, R>
@@ -138,23 +138,23 @@ const withTempStateRoot = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const p = yield* _(Path.Path)
       const tempBase = yield* _(
-        fs.makeTempDirectoryScoped({ prefix: "docker-git-state-init-" })
+        fs.makeTempDirectoryScoped({ prefix: "spawn-state-init-" })
       )
       const stateRoot = p.join(tempBase, "state")
 
-      const previous = process.env["DOCKER_GIT_PROJECTS_ROOT"]
+      const previous = process.env["SPAWN_PROJECTS_ROOT"]
       yield* _(
         Effect.addFinalizer(() =>
           Effect.sync(() => {
             if (previous === undefined) {
-              delete process.env["DOCKER_GIT_PROJECTS_ROOT"]
+              delete process.env["SPAWN_PROJECTS_ROOT"]
             } else {
-              process.env["DOCKER_GIT_PROJECTS_ROOT"] = previous
+              process.env["SPAWN_PROJECTS_ROOT"] = previous
             }
           })
         )
       )
-      process.env["DOCKER_GIT_PROJECTS_ROOT"] = stateRoot
+      process.env["SPAWN_PROJECTS_ROOT"] = stateRoot
 
       return yield* _(use({ tempBase, stateRoot }))
     })

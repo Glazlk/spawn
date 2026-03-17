@@ -60,12 +60,12 @@ describe("runGhApiNullable invariants", () => {
   it.effect("returns the trimmed output string when non-empty", () =>
     Effect.gen(function*(_) {
       const inner: Effect.Effect<string, CommandFailedError | PlatformError, CommandExecutor.CommandExecutor> =
-        Effect.succeed("https://github.com/user/.docker-git.git")
+        Effect.succeed("https://github.com/user/.spawn.git")
 
       const result = yield* _(applyNullableTransform(inner))
 
       // INVARIANT: non-empty output → the same string (already trimmed by runGhApiCapture)
-      expect(result).toBe("https://github.com/user/.docker-git.git")
+      expect(result).toBe("https://github.com/user/.spawn.git")
     }).pipe(Effect.provide(NodeContext.layer)))
 
   it.effect("runGhApiNullable type signature never exposes CommandFailedError in error channel", () => {

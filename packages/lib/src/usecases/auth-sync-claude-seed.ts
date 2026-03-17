@@ -96,7 +96,7 @@ const syncClaudeCredentialsJson = (
     updateLabel: "Claude credentials"
   })
 
-// CHANGE: seed docker-git Claude auth store from host-level Claude files
+// CHANGE: seed spawn Claude auth store from host-level Claude files
 // WHY: Claude Code (v2+) keeps OAuth session in ~/.claude.json and ~/.claude/.credentials.json
 // QUOTE(ТЗ): "глобальная авторизация для клода ... должна сама везде настроиться"
 // REF: user-request-2026-03-04-claude-global-auth-seed

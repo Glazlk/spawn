@@ -6,10 +6,10 @@ dev_ssh_key.pub
 # Local auth cache
 .orch/
 
-# Local docker-git work dirs
-.docker-git/
+# Local spawn work dirs
+.spawn/
 .e2e/
-effect-template1/
+spawn1/
 
 # Node / build artifacts
 node_modules/

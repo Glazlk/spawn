@@ -1,8 +1,8 @@
 {
-  "name": "effect-template-workspace",
+  "name": "spawn-workspace",
   "version": "1.0.0",
   "private": true,
-  "description": "Monorepo workspace for effect-template",
+  "description": "spawn(task) → isolated env + AI agent → PR",
   "packageManager": "pnpm@10.32.1",
   "workspaces": [
     "packages/api",
@@ -23,7 +23,7 @@
     "changeset-version": "changeset version",
     "clone": "pnpm --filter ./packages/app build && node packages/app/dist/main.js clone",
     "open": "pnpm --filter ./packages/app build && node packages/app/dist/main.js open",
-    "docker-git": "pnpm --filter ./packages/app build:docker-git && node packages/app/dist/src/docker-git/main.js",
+    "spawn": "pnpm --filter ./packages/app build:spawn && node packages/app/dist/src/spawn/main.js",
     "e2e": "bash scripts/e2e/run-all.sh",
     "e2e:clone-cache": "bash scripts/e2e/clone-cache.sh",
     "e2e:login-context": "bash scripts/e2e/login-context.sh",
@@ -43,12 +43,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ProverCoderAI/effect-template.git"
+    "url": "git+https://github.com/konard/spawn.git"
   },
   "bugs": {
-    "url": "https://github.com/ProverCoderAI/effect-template/issues"
+    "url": "https://github.com/konard/spawn/issues"
   },
-  "homepage": "https://github.com/ProverCoderAI/effect-template#readme",
+  "homepage": "https://github.com/konard/spawn#readme",
   "license": "ISC",
   "pnpm": {
     "ignoredBuiltDependencies": [

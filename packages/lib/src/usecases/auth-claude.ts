@@ -27,10 +27,10 @@ type ClaudeAccountContext = {
   readonly fs: FileSystem.FileSystem
 }
 
-export const claudeAuthRoot = ".docker-git/.orch/auth/claude"
+export const claudeAuthRoot = ".spawn/.orch/auth/claude"
 
-const claudeImageName = "docker-git-auth-claude:latest"
-const claudeImageDir = ".docker-git/.orch/auth/claude/.image"
+const claudeImageName = "spawn-auth-claude:latest"
+const claudeImageDir = ".spawn/.orch/auth/claude/.image"
 const claudeContainerHomeDir = "/claude-home"
 const claudeOauthTokenFileName = ".oauth-token"
 const claudeConfigFileName = ".claude.json"
@@ -138,8 +138,8 @@ const ensureClaudeOrchLayout = (
     envGlobalPath: defaultTemplateConfig.envGlobalPath,
     envProjectPath: defaultTemplateConfig.envProjectPath,
     codexAuthPath: defaultTemplateConfig.codexAuthPath,
-    ghAuthPath: ".docker-git/.orch/auth/gh",
-    claudeAuthPath: ".docker-git/.orch/auth/claude"
+    ghAuthPath: ".spawn/.orch/auth/gh",
+    claudeAuthPath: ".spawn/.orch/auth/claude"
   })
 
 const renderClaudeDockerfile = (): string =>
@@ -236,7 +236,7 @@ const runClaudePingProbeExitCode = (
 
 // CHANGE: login to Claude Code CLI via interactive `claude setup-token` in isolated container
 // WHY: `claude auth login` may stall in containerized TTY without presenting the code prompt
-// QUOTE(ТЗ): "claude авторизация в docker-git рабочая"
+// QUOTE(ТЗ): "claude авторизация в spawn рабочая"
 // REF: issue-61
 // SOURCE: n/a
 // FORMAT THEOREM: forall l: login(l) -> claude_auth_cache_exists(l)
@@ -304,7 +304,7 @@ export const authClaudeStatus = (
       }
       yield* _(
         Effect.logWarning(
-          `Claude session exists but API probe failed (${accountLabel}, ${method}, exit=${probeExitCode}). Run 'docker-git auth claude login'.`
+          `Claude session exists but API probe failed (${accountLabel}, ${method}, exit=${probeExitCode}). Run 'spawn auth claude login'.`
         )
       )
     }))

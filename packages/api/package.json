@@ -1,8 +1,8 @@
 {
-  "name": "@effect-template/api",
+  "name": "@spawn-dev/api",
   "version": "0.1.0",
   "private": true,
-  "description": "docker-git clean-slate v1 API",
+  "description": "spawn clean-slate v1 API",
   "main": "dist/src/main.js",
   "type": "module",
   "scripts": {
@@ -18,7 +18,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@effect-template/lib": "workspace:*",
+    "@spawn-dev/lib": "workspace:*",
     "@effect/platform": "^0.94.5",
     "@effect/platform-node": "^0.104.1",
     "@effect/schema": "^0.75.5",

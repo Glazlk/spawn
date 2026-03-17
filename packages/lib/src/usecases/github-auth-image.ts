@@ -7,10 +7,10 @@ import type { Effect } from "effect"
 import type { CommandFailedError } from "../shell/errors.js"
 import { ensureDockerImage } from "./docker-image.js"
 
-export const ghAuthRoot = ".docker-git/.orch/auth/gh"
+export const ghAuthRoot = ".spawn/.orch/auth/gh"
 export const ghAuthDir = "/gh-auth"
-export const ghImageName = "docker-git-auth-gh:latest"
-export const ghImageDir = ".docker-git/.orch/auth/gh/.image"
+export const ghImageName = "spawn-auth-gh:latest"
+export const ghImageDir = ".spawn/.orch/auth/gh/.image"
 
 export const renderGhDockerfile = (): string =>
   String.raw`FROM ubuntu:24.04

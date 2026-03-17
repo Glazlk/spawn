@@ -3,7 +3,7 @@ import type * as FileSystem from "@effect/platform/FileSystem"
 import type * as Path from "@effect/platform/Path"
 import { Effect } from "effect"
 
-const stateGitignoreMarker = "# docker-git state repository"
+const stateGitignoreMarker = "# spawn state repository"
 
 const legacySecretIgnorePatterns: ReadonlyArray<string> = [
   "**/.orch/env/",
@@ -93,7 +93,7 @@ export const ensureStateGitignore = (
       return
     }
 
-    // If the file is docker-git managed but still ignores secrets (legacy default), rewrite it.
+    // If the file is spawn managed but still ignores secrets (legacy default), rewrite it.
     const prevLines = new Set(prev.replaceAll("\r", "").split("\n").map((l) => l.trimEnd()))
     const hasLegacySecretIgnores = legacySecretIgnorePatterns.some((p) => prevLines.has(p))
     if (hasLegacySecretIgnores) {

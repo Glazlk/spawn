@@ -17,7 +17,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-apply-config-"
+          prefix: "spawn-apply-config-"
         })
       )
       return yield* _(use(tempDir))
@@ -38,7 +38,7 @@ const makeTemplateConfig = (
   repoRef: "main",
   targetDir,
   volumeName: "dg-test-home",
-  dockerGitPath: path.join(root, ".docker-git"),
+  dockerGitPath: path.join(root, ".spawn"),
   authorizedKeysPath: path.join(root, "authorized_keys"),
   envGlobalPath: path.join(root, ".orch/env/global.env"),
   envProjectPath: path.join(outDir, ".orch/env/project.env"),
@@ -46,7 +46,7 @@ const makeTemplateConfig = (
   codexSharedAuthPath: path.join(root, ".orch/auth/codex-shared"),
   codexHome: "/home/dev/.codex",
   dockerNetworkMode: "shared",
-  dockerSharedNetworkName: "docker-git-shared",
+  dockerSharedNetworkName: "spawn-shared",
   enableMcpPlaywright: false,
   pnpmVersion: "10.27.0"
 })
@@ -57,11 +57,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const rewriteTargetDirInConfig = (source: string, targetDir: string): string => {
   const parsed: unknown = JSON.parse(source)
   if (!isRecord(parsed)) {
-    throw new Error("invalid docker-git.json root")
+    throw new Error("invalid spawn.json root")
   }
   const template = parsed["template"]
   if (!isRecord(template)) {
-    throw new Error("invalid docker-git.json template")
+    throw new Error("invalid spawn.json template")
   }
   const next = { ...parsed, template: { ...template, targetDir } }
   return `${JSON.stringify(next, null, 2)}\n`
@@ -75,9 +75,9 @@ type ProcessPatch = {
 const patchProcess = (cwd: string, projectsRoot: string): Effect.Effect<ProcessPatch, never> =>
   Effect.sync(() => {
     const prevCwd = process.cwd()
-    const prevProjectsRoot = process.env["DOCKER_GIT_PROJECTS_ROOT"]
+    const prevProjectsRoot = process.env["SPAWN_PROJECTS_ROOT"]
     process.chdir(cwd)
-    process.env["DOCKER_GIT_PROJECTS_ROOT"] = projectsRoot
+    process.env["SPAWN_PROJECTS_ROOT"] = projectsRoot
     return { prevCwd, prevProjectsRoot }
   })
 
@@ -85,9 +85,9 @@ const restorePatchedProcess = (patch: ProcessPatch): Effect.Effect<void, never> 
   Effect.sync(() => {
     process.chdir(patch.prevCwd)
     if (patch.prevProjectsRoot === undefined) {
-      delete process.env["DOCKER_GIT_PROJECTS_ROOT"]
+      delete process.env["SPAWN_PROJECTS_ROOT"]
     } else {
-      process.env["DOCKER_GIT_PROJECTS_ROOT"] = patch.prevProjectsRoot
+      process.env["SPAWN_PROJECTS_ROOT"] = patch.prevProjectsRoot
     }
   })
 
@@ -118,7 +118,7 @@ const runGit = (
   }).pipe(Effect.asVoid)
 
 describe("applyProjectFiles", () => {
-  it.effect("applies updated docker-git.json to managed files in existing project", () =>
+  it.effect("applies updated spawn.json to managed files in existing project", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
@@ -139,7 +139,7 @@ describe("applyProjectFiles", () => {
         const envProjectPath = path.join(outDir, ".orch/env/project.env")
         yield* _(fs.writeFileString(envProjectPath, "# custom env\nCUSTOM_KEY=1\n"))
 
-        const configPath = path.join(outDir, "docker-git.json")
+        const configPath = path.join(outDir, "spawn.json")
         const configBefore = yield* _(fs.readFileString(configPath))
         yield* _(fs.writeFileString(configPath, rewriteTargetDirInConfig(configBefore, updatedTargetDir)))
 
@@ -213,7 +213,7 @@ describe("applyProjectFiles", () => {
         expect(composeAfter).toContain('MCP_PLAYWRIGHT_ENABLE: "1"')
         expect(composeAfter).toContain("dg-test-browser")
 
-        const configAfter = yield* _(fs.readFileString(path.join(outDir, "docker-git.json")))
+        const configAfter = yield* _(fs.readFileString(path.join(outDir, "spawn.json")))
         expect(configAfter).toContain('"cpuLimit": "2"')
         expect(configAfter).toContain('"ramLimit": "4g"')
       })
@@ -221,22 +221,22 @@ describe("applyProjectFiles", () => {
 })
 
 describe("applyProjectConfig", () => {
-  it.effect("auto-resolves docker-git project by current repo and branch when projectDir is default", () =>
+  it.effect("auto-resolves spawn project by current repo and branch when projectDir is default", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
         const path = yield* _(Path.Path)
 
         const projectsRoot = path.join(root, "projects-root")
-        const projectDir = path.join(projectsRoot, "provercoderai", "docker-git", "issue-72")
-        const workspaceRepoDir = path.join(root, "workspace", "docker-git")
-        const initialTargetDir = "/home/dev/workspaces/provercoderai/docker-git"
-        const updatedTargetDir = "/home/dev/workspaces/provercoderai/docker-git-updated"
+        const projectDir = path.join(projectsRoot, "provercoderai", "spawn", "issue-72")
+        const workspaceRepoDir = path.join(root, "workspace", "spawn")
+        const initialTargetDir = "/home/dev/workspaces/provercoderai/spawn"
+        const updatedTargetDir = "/home/dev/workspaces/provercoderai/spawn-updated"
 
         const globalConfig = makeTemplateConfig(root, projectDir, path, initialTargetDir)
         const projectConfig = {
           ...makeTemplateConfig(root, projectDir, path, initialTargetDir),
-          repoUrl: "https://github.com/ProverCoderAI/docker-git.git",
+          repoUrl: "https://github.com/konard/spawn.git",
           repoRef: "issue-72"
         }
 
@@ -247,7 +247,7 @@ describe("applyProjectConfig", () => {
           })
         )
 
-        const configPath = path.join(projectDir, "docker-git.json")
+        const configPath = path.join(projectDir, "spawn.json")
         const configBefore = yield* _(fs.readFileString(configPath))
         yield* _(fs.writeFileString(configPath, rewriteTargetDirInConfig(configBefore, updatedTargetDir)))
 
@@ -257,7 +257,7 @@ describe("applyProjectConfig", () => {
         yield* _(runGit(workspaceRepoDir, ["config", "user.name", "test-user"]))
         yield* _(runGit(workspaceRepoDir, ["commit", "--allow-empty", "-m", "init"]))
         yield* _(runGit(workspaceRepoDir, ["checkout", "-b", "issue-72"]))
-        yield* _(runGit(workspaceRepoDir, ["remote", "add", "origin", "https://github.com/skulidropek/docker-git.git"]))
+        yield* _(runGit(workspaceRepoDir, ["remote", "add", "origin", "https://github.com/skulidropek/spawn.git"]))
 
         const applied = yield* _(
           withPatchedProcess(

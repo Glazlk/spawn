@@ -75,15 +75,15 @@ const ensureAuthorizedKeys = (
     })
   )
 
-const defaultGlobalEnvContents = "# docker-git env\n# KEY=value\n"
+const defaultGlobalEnvContents = "# spawn env\n# KEY=value\n"
 
 const defaultProjectEnvContents = [
-  "# docker-git project env defaults",
+  "# spawn project env defaults",
   "CODEX_SHARE_AUTH=1",
   "CODEX_AUTO_UPDATE=1",
-  "DOCKER_GIT_ZSH_AUTOSUGGEST=1",
-  "DOCKER_GIT_ZSH_AUTOSUGGEST_STYLE=fg=8,italic",
-  "DOCKER_GIT_ZSH_AUTOSUGGEST_STRATEGY=history completion",
+  "SPAWN_ZSH_AUTOSUGGEST=1",
+  "SPAWN_ZSH_AUTOSUGGEST_STYLE=fg=8,italic",
+  "SPAWN_ZSH_AUTOSUGGEST_STRATEGY=history completion",
   "MCP_PLAYWRIGHT_ISOLATED=1",
   ""
 ].join("\n")
@@ -176,6 +176,6 @@ export const migrateProjectOrchLayout = (
     envGlobalPath: globalConfig.envGlobalPath,
     envProjectPath: globalConfig.envProjectPath,
     codexAuthPath: globalConfig.codexAuthPath,
-    ghAuthPath: resolveRootPath(".docker-git/.orch/auth/gh"),
-    claudeAuthPath: resolveRootPath(".docker-git/.orch/auth/claude")
+    ghAuthPath: resolveRootPath(".spawn/.orch/auth/gh"),
+    claudeAuthPath: resolveRootPath(".spawn/.orch/auth/claude")
   })

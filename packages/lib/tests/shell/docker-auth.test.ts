@@ -4,33 +4,33 @@ import { remapDockerBindHostPathFromMounts } from "../../src/shell/docker-auth.j
 
 describe("remapDockerBindHostPathFromMounts", () => {
   it("maps nested bind paths through the current container mount source", () => {
-    const next = remapDockerBindHostPathFromMounts("/home/dev/.docker-git/.orch/auth/claude/default", [
+    const next = remapDockerBindHostPathFromMounts("/home/dev/.spawn/.orch/auth/claude/default", [
       {
-        source: "/home/user/.docker-git",
-        destination: "/home/dev/.docker-git"
+        source: "/home/user/.spawn",
+        destination: "/home/dev/.spawn"
       }
     ])
 
-    expect(next).toBe("/home/user/.docker-git/.orch/auth/claude/default")
+    expect(next).toBe("/home/user/.spawn/.orch/auth/claude/default")
   })
 
   it("prefers the longest matching destination prefix", () => {
-    const next = remapDockerBindHostPathFromMounts("/home/dev/.docker-git/provercoderai/repo/.orch/auth/gh", [
+    const next = remapDockerBindHostPathFromMounts("/home/dev/.spawn/provercoderai/repo/.orch/auth/gh", [
       {
-        source: "/home/user/.docker-git",
-        destination: "/home/dev/.docker-git"
+        source: "/home/user/.spawn",
+        destination: "/home/dev/.spawn"
       },
       {
-        source: "/srv/docker-git/provercoderai/repo",
-        destination: "/home/dev/.docker-git/provercoderai/repo"
+        source: "/srv/spawn/provercoderai/repo",
+        destination: "/home/dev/.spawn/provercoderai/repo"
       }
     ])
 
-    expect(next).toBe("/srv/docker-git/provercoderai/repo/.orch/auth/gh")
+    expect(next).toBe("/srv/spawn/provercoderai/repo/.orch/auth/gh")
   })
 
   it("keeps the original path when no mount matches", () => {
-    const hostPath = "/tmp/docker-git-auth"
+    const hostPath = "/tmp/spawn-auth"
 
     expect(remapDockerBindHostPathFromMounts(hostPath, [])).toBe(hostPath)
   })

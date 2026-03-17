@@ -28,7 +28,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-projects-up-"
+          prefix: "spawn-projects-up-"
         })
       )
       return yield* _(use(tempDir))
@@ -125,7 +125,7 @@ const makeTemplateConfig = (
   repoRef: "main",
   targetDir,
   volumeName: "dg-test-home",
-  dockerGitPath: path.join(root, ".docker-git"),
+  dockerGitPath: path.join(root, ".spawn"),
   authorizedKeysPath: path.join(root, "authorized_keys"),
   envGlobalPath: path.join(root, ".orch/env/global.env"),
   envProjectPath: path.join(outDir, ".orch/env/project.env"),
@@ -133,7 +133,7 @@ const makeTemplateConfig = (
   codexSharedAuthPath: path.join(root, ".orch/auth/codex-shared"),
   codexHome: "/home/dev/.codex",
   dockerNetworkMode: "project",
-  dockerSharedNetworkName: "docker-git-shared",
+  dockerSharedNetworkName: "spawn-shared",
   enableMcpPlaywright: false,
   pnpmVersion: "10.27.0"
 })
@@ -144,11 +144,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const rewriteTargetDirInConfig = (source: string, targetDir: string): string => {
   const parsed: unknown = JSON.parse(source)
   if (!isRecord(parsed)) {
-    throw new Error("invalid docker-git.json root")
+    throw new Error("invalid spawn.json root")
   }
   const template = parsed["template"]
   if (!isRecord(template)) {
-    throw new Error("invalid docker-git.json template")
+    throw new Error("invalid spawn.json template")
   }
   const next = { ...parsed, template: { ...template, targetDir } }
   return `${JSON.stringify(next, null, 2)}\n`
@@ -175,7 +175,7 @@ describe("runDockerComposeUpWithPortCheck", () => {
           })
         )
 
-        const configPath = path.join(outDir, "docker-git.json")
+        const configPath = path.join(outDir, "spawn.json")
         const configBefore = yield* _(fs.readFileString(configPath))
         yield* _(fs.writeFileString(configPath, rewriteTargetDirInConfig(configBefore, updatedTargetDir)))
         yield* _(fs.writeFileString(path.join(outDir, "docker-compose.yml"), "# stale compose\n"))
@@ -196,7 +196,7 @@ describe("runDockerComposeUpWithPortCheck", () => {
         expect(composeAfter).toContain("cpus:")
         expect(composeAfter).toContain('mem_limit: "')
 
-        const configAfter = yield* _(fs.readFileString(path.join(outDir, "docker-git.json")))
+        const configAfter = yield* _(fs.readFileString(path.join(outDir, "spawn.json")))
         expect(configAfter).toContain('"cpuLimit": "30%"')
         expect(configAfter).toContain('"ramLimit": "30%"')
 

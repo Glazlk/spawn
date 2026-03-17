@@ -29,7 +29,7 @@ type ApplyProjectFilesError =
   | PlatformError
 type ApplyProjectFilesEnv = FileSystem | Path
 
-// CHANGE: apply existing docker-git.json to managed files in an already created project
+// CHANGE: apply existing spawn.json to managed files in an already created project
 // WHY: allow updating current project/container config without creating a new project directory
 // QUOTE(ТЗ): "Не создавать новый... а прямо в текущем обновить её на актуальную"
 // REF: issue-72-followup-apply-current-config
@@ -37,14 +37,14 @@ type ApplyProjectFilesEnv = FileSystem | Path
 // FORMAT THEOREM: forall p: apply_files(p) -> files(p) = plan(read_config(p))
 // PURITY: SHELL
 // EFFECT: Effect<TemplateConfig, ConfigNotFoundError | ConfigDecodeError | FileExistsError | PlatformError, FileSystem | Path>
-// INVARIANT: rewrites only managed files from docker-git.json
+// INVARIANT: rewrites only managed files from spawn.json
 // COMPLEXITY: O(n) where n = |managed_files|
 export const applyProjectFiles = (
   projectDir: string,
   command?: ApplyCommand
 ): Effect.Effect<TemplateConfig, ApplyProjectFilesError, ApplyProjectFilesEnv> =>
   Effect.gen(function*(_) {
-    yield* _(Effect.log(`Applying docker-git config files in ${projectDir}...`))
+    yield* _(Effect.log(`Applying spawn config files in ${projectDir}...`))
     const config = yield* _(readProjectConfig(projectDir))
     const resolvedTemplate = yield* _(
       resolveTemplateResourceLimits(applyTemplateOverrides(config.template, command))
@@ -71,7 +71,7 @@ const resolveFromCurrentTree = (): Effect.Effect<string | null, PlatformError, A
   Effect.gen(function*(_) {
     const { fs, path, resolved } = yield* _(resolveBaseDir("."))
     const configPath = yield* _(
-      findExistingUpwards(fs, path, resolved, "docker-git.json", maxLocalConfigSearchDepth).pipe(
+      findExistingUpwards(fs, path, resolved, "spawn.json", maxLocalConfigSearchDepth).pipe(
         Effect.match({
           onFailure: nullString,
           onSuccess: (value) => value
@@ -132,7 +132,7 @@ const applyProjectWithUp = (
   command: ApplyCommand
 ): Effect.Effect<TemplateConfig, ApplyProjectConfigError, ApplyProjectConfigEnv> =>
   Effect.gen(function*(_) {
-    yield* _(Effect.log(`Applying docker-git config and refreshing container in ${projectDir}...`))
+    yield* _(Effect.log(`Applying spawn config and refreshing container in ${projectDir}...`))
     yield* _(ensureDockerDaemonAccess(process.cwd()))
     yield* _(ensureClaudeAuthSeedFromHome(defaultProjectsRoot(projectDir), ".orch/auth/claude"))
     if (hasApplyOverrides(command)) {
@@ -141,7 +141,7 @@ const applyProjectWithUp = (
     return yield* _(runDockerComposeUpWithPortCheck(projectDir))
   })
 
-// CHANGE: add command handler to apply docker-git config on an existing project
+// CHANGE: add command handler to apply spawn config on an existing project
 // WHY: update current project/container config without running create/clone again
 // QUOTE(ТЗ): "Не создавать новый... а прямо в текущем обновить её на актуальную"
 // REF: issue-72-followup-apply-current-config
@@ -162,7 +162,7 @@ export const applyProjectConfig = (
           if (inferredProjectDir === null) {
             return yield* _(Effect.fail(error))
           }
-          yield* _(Effect.log(`Auto-resolved docker-git project directory: ${inferredProjectDir}`))
+          yield* _(Effect.log(`Auto-resolved spawn project directory: ${inferredProjectDir}`))
           return yield* _(runApplyForProjectDir(inferredProjectDir, command))
         })
         : Effect.fail(error))

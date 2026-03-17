@@ -1,4 +1,4 @@
-# @prover-coder-ai/docker-git
+# @spawn-dev/spawn
 
 ## 1.0.50
 

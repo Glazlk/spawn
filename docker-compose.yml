@@ -3,7 +3,7 @@ services:
     build: .
     container_name: dev-ssh
     environment:
-      REPO_URL: "https://github.com/ProverCoderAI/eslint-plugin-suggest-members.git"
+      REPO_URL: "https://github.com/konard/eslint-plugin-suggest-members.git"
       REPO_REF: "main"
       TARGET_DIR: "/home/dev/app"
       CODEX_HOME: "/home/dev/.codex"

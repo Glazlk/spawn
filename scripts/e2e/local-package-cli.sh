@@ -4,14 +4,14 @@ set -euo pipefail
 RUN_ID="$(date +%s)-$RANDOM"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-ROOT_BASE="${DOCKER_GIT_E2E_ROOT_BASE:-/tmp/docker-git-e2e-root}"
+ROOT_BASE="${SPAWN_E2E_ROOT_BASE:-/tmp/spawn-e2e-root}"
 mkdir -p "$ROOT_BASE"
 ROOT="$(mktemp -d "$ROOT_BASE/local-package-cli.XXXXXX")"
 KEEP="${KEEP:-0}"
 
 PACK_LOG="$ROOT/npm-pack.log"
-HELP_LOG_PNPM="$ROOT/docker-git-help-pnpm.log"
-HELP_LOG_NPM="$ROOT/docker-git-help-npm.log"
+HELP_LOG_PNPM="$ROOT/spawn-help-pnpm.log"
+HELP_LOG_NPM="$ROOT/spawn-help-npm.log"
 TAR_LIST="$ROOT/tar-list.txt"
 PACKED_TARBALL=""
 
@@ -28,11 +28,11 @@ on_error() {
     cat "$PACK_LOG" >&2 || true
   fi
   if [[ -f "$HELP_LOG_PNPM" ]]; then
-    echo "--- pnpm docker-git --help log ---" >&2
+    echo "--- pnpm spawn --help log ---" >&2
     cat "$HELP_LOG_PNPM" >&2 || true
   fi
   if [[ -f "$HELP_LOG_NPM" ]]; then
-    echo "--- npm exec docker-git --help log ---" >&2
+    echo "--- npm exec spawn --help log ---" >&2
     cat "$HELP_LOG_NPM" >&2 || true
   fi
 }
@@ -70,34 +70,34 @@ while IFS= read -r entry; do
   esac
 done <"$TAR_LIST"
 
-grep -Fxq "package/dist/src/docker-git/main.js" "$TAR_LIST" \
-  || fail "packed tarball does not include dist/src/docker-git/main.js"
+grep -Fxq "package/dist/src/spawn/main.js" "$TAR_LIST" \
+  || fail "packed tarball does not include dist/src/spawn/main.js"
 
 main_entry_tmp="$ROOT/main-entry.js"
-tar -xOf "$PACKED_TARBALL" package/dist/src/docker-git/main.js >"$main_entry_tmp"
+tar -xOf "$PACKED_TARBALL" package/dist/src/spawn/main.js >"$main_entry_tmp"
 main_first_line="$(head -n 1 "$main_entry_tmp" | tr -d '\r')"
 [[ "$main_first_line" == "#!/usr/bin/env node" ]] \
   || fail "packed CLI entrypoint missing shebang: expected '#!/usr/bin/env node', got '$main_first_line'"
 
-dep_keys="$(tar -xOf "$PACKED_TARBALL" package/package.json | node -e 'let s="";process.stdin.on("data",(c)=>{s+=c});process.stdin.on("end",()=>{const pkg=JSON.parse(s);const deps=Object.keys(pkg.dependencies ?? {});if (deps.includes("@effect-template/lib")) {console.error("@effect-template/lib must not be a runtime dependency in packed package");process.exit(1)}process.stdout.write(deps.join(","));});')"
+dep_keys="$(tar -xOf "$PACKED_TARBALL" package/package.json | node -e 'let s="";process.stdin.on("data",(c)=>{s+=c});process.stdin.on("end",()=>{const pkg=JSON.parse(s);const deps=Object.keys(pkg.dependencies ?? {});if (deps.includes("@spawn-dev/lib")) {console.error("@spawn-dev/lib must not be a runtime dependency in packed package");process.exit(1)}process.stdout.write(deps.join(","));});')"
 [[ "$dep_keys" == *"effect"* ]] || fail "packed dependency set looks invalid: $dep_keys"
 
 mkdir -p "$ROOT/project"
 cd "$ROOT/project"
 npm init -y >/dev/null
 pnpm add "$PACKED_TARBALL" --silent --lockfile=false
-pnpm docker-git --help >"$HELP_LOG_PNPM" 2>&1
+pnpm spawn --help >"$HELP_LOG_PNPM" 2>&1
 
-grep -Fq -- "docker-git clone <url> [options]" "$HELP_LOG_PNPM" \
-  || fail "expected docker-git help output from local packed package"
+grep -Fq -- "spawn clone <url> [options]" "$HELP_LOG_PNPM" \
+  || fail "expected spawn help output from local packed package"
 
 mkdir -p "$ROOT/project-npm"
 cd "$ROOT/project-npm"
 npm init -y >/dev/null
 npm install "$PACKED_TARBALL" --silent --no-audit --fund=false
-npm exec -- docker-git --help >"$HELP_LOG_NPM" 2>&1
+npm exec -- spawn --help >"$HELP_LOG_NPM" 2>&1
 
-grep -Fq -- "docker-git clone <url> [options]" "$HELP_LOG_NPM" \
-  || fail "expected docker-git help output via npm exec from local packed package"
+grep -Fq -- "spawn clone <url> [options]" "$HELP_LOG_NPM" \
+  || fail "expected spawn help output via npm exec from local packed package"
 
 echo "e2e/local-package-cli: local tarball install + pnpm/npm CLI execution OK" >&2

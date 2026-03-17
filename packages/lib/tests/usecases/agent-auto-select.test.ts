@@ -15,7 +15,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-auto-agent-"
+          prefix: "spawn-auto-agent-"
         })
       )
       return yield* _(use(tempDir))
@@ -31,7 +31,7 @@ const makeConfig = (root: string, path: Path.Path): TemplateConfig => ({
   repoRef: "issue-119",
   targetDir: "/home/dev/org/repo",
   volumeName: "dg-test-home",
-  dockerGitPath: path.join(root, ".docker-git"),
+  dockerGitPath: path.join(root, ".spawn"),
   authorizedKeysPath: path.join(root, "authorized_keys"),
   envGlobalPath: path.join(root, ".orch/env/global.env"),
   envProjectPath: path.join(root, ".orch/env/project.env"),
@@ -39,7 +39,7 @@ const makeConfig = (root: string, path: Path.Path): TemplateConfig => ({
   codexSharedAuthPath: path.join(root, ".orch/auth/codex"),
   codexHome: "/home/dev/.codex",
   dockerNetworkMode: "shared",
-  dockerSharedNetworkName: "docker-git-shared",
+  dockerSharedNetworkName: "spawn-shared",
   enableMcpPlaywright: false,
   pnpmVersion: "10.27.0",
   agentAuto: true

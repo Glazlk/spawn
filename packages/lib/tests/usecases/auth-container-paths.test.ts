@@ -26,7 +26,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-auth-paths-"
+          prefix: "spawn-auth-paths-"
         })
       )
       return yield* _(use(tempDir))
@@ -116,7 +116,7 @@ const makeFakeExecutor = (
 
       const last = flattened[flattened.length - 1]!
       const invocation: RecordedCommand = { command: last.command, args: last.args }
-      const stdoutText = isDockerRunFor(invocation, "docker-git-auth-gh:latest", ["auth", "token"])
+      const stdoutText = isDockerRunFor(invocation, "spawn-auth-gh:latest", ["auth", "token"])
         ? "test-gh-token\n"
         : ""
       const stdout = stdoutText.length === 0 ? Stream.empty : Stream.succeed(encode(stdoutText))
@@ -150,8 +150,8 @@ describe("auth container paths", () => {
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
-        const envPath = `${root}/.docker-git/.orch/env/global.env`
-        const accountPath = `${root}/.docker-git/.orch/auth/gh/default`
+        const envPath = `${root}/.spawn/.orch/env/global.env`
+        const accountPath = `${root}/.spawn/.orch/auth/gh/default`
         const recorded: Array<RecordedCommand> = []
         const executor = makeFakeExecutor(recorded)
 
@@ -159,7 +159,7 @@ describe("auth container paths", () => {
           withPatchedEnv(
             {
               HOME: root,
-              DOCKER_GIT_STATE_AUTO_SYNC: "0"
+              SPAWN_STATE_AUTO_SYNC: "0"
             },
             withWorkingDirectory(
               root,
@@ -168,17 +168,17 @@ describe("auth container paths", () => {
                 label: null,
                 token: null,
                 scopes: null,
-                envGlobalPath: ".docker-git/.orch/env/global.env"
+                envGlobalPath: ".spawn/.orch/env/global.env"
               }).pipe(Effect.provideService(CommandExecutor.CommandExecutor, executor))
             )
           )
         )
 
         const loginCommand = recorded.find((entry) =>
-          isDockerRunFor(entry, "docker-git-auth-gh:latest", ["auth", "login"])
+          isDockerRunFor(entry, "spawn-auth-gh:latest", ["auth", "login"])
         )
         const tokenCommand = recorded.find((entry) =>
-          isDockerRunFor(entry, "docker-git-auth-gh:latest", ["auth", "token"])
+          isDockerRunFor(entry, "spawn-auth-gh:latest", ["auth", "token"])
         )
 
         expect(loginCommand).toBeDefined()
@@ -191,7 +191,7 @@ describe("auth container paths", () => {
             "BROWSER=echo",
             "-e",
             "GH_CONFIG_DIR=/gh-auth",
-            "docker-git-auth-gh:latest",
+            "spawn-auth-gh:latest",
             "auth",
             "login"
           ])
@@ -202,7 +202,7 @@ describe("auth container paths", () => {
             `${accountPath}:/gh-auth`,
             "-e",
             "GH_CONFIG_DIR=/gh-auth",
-            "docker-git-auth-gh:latest",
+            "spawn-auth-gh:latest",
             "auth",
             "token"
           ])
@@ -223,21 +223,21 @@ describe("auth container paths", () => {
           withPatchedEnv(
             {
               HOME: root,
-              DOCKER_GIT_STATE_AUTO_SYNC: "0"
+              SPAWN_STATE_AUTO_SYNC: "0"
             },
             withWorkingDirectory(
               root,
               authCodexLogin({
                 _tag: "AuthCodexLogin",
                 label: null,
-                codexAuthPath: ".docker-git/.orch/auth/codex"
+                codexAuthPath: ".spawn/.orch/auth/codex"
               }).pipe(Effect.provideService(CommandExecutor.CommandExecutor, executor))
             )
           )
         )
 
         const loginCommand = recorded.find((entry) =>
-          isDockerRunFor(entry, "docker-git-auth-codex:latest", ["codex", "login", "--device-auth"])
+          isDockerRunFor(entry, "spawn-auth-codex:latest", ["codex", "login", "--device-auth"])
         )
 
         expect(loginCommand).toBeDefined()

@@ -26,8 +26,8 @@ const JsonRecordSchema: Schema.Schema<JsonRecord> = Schema.Record({
 })
 
 const JsonRecordFromStringSchema = Schema.parseJson(JsonRecordSchema)
-const defaultEnvContents = "# docker-git env\n# KEY=value\n"
-const codexConfigMarker = "# docker-git codex config"
+const defaultEnvContents = "# spawn env\n# KEY=value\n"
+const codexConfigMarker = "# spawn codex config"
 
 // CHANGE: switch default model to gpt-5.4 and pin xhigh reasoning for default + plan mode
 // WHY: keep plan mode aligned with development mode while preserving long-context defaults
@@ -40,7 +40,7 @@ const codexConfigMarker = "# docker-git codex config"
 // INVARIANT: default config stays deterministic
 // COMPLEXITY: O(1)
 export const defaultCodexConfig = [
-  "# docker-git codex config",
+  "# spawn codex config",
   "model = \"gpt-5.4\"",
   "model_context_window = 1050000",
   "model_auto_compact_token_limit = 945000",

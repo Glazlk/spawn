@@ -8,7 +8,7 @@ export type DockerNetworkMode = "shared" | "project"
 
 export const defaultDockerNetworkMode: DockerNetworkMode = "shared"
 
-export const defaultDockerSharedNetworkName = "docker-git-shared"
+export const defaultDockerSharedNetworkName = "spawn-shared"
 
 export const defaultCpuLimit = "30%"
 
@@ -356,14 +356,14 @@ export const defaultTemplateConfig = {
   repoRef: "main",
   targetDir: "/home/dev/app",
   volumeName: "dev_home",
-  dockerGitPath: "./.docker-git",
-  authorizedKeysPath: "./.docker-git/authorized_keys",
-  envGlobalPath: "./.docker-git/.orch/env/global.env",
+  dockerGitPath: "./.spawn",
+  authorizedKeysPath: "./.spawn/authorized_keys",
+  envGlobalPath: "./.spawn/.orch/env/global.env",
   envProjectPath: "./.orch/env/project.env",
-  codexAuthPath: "./.docker-git/.orch/auth/codex",
-  codexSharedAuthPath: "./.docker-git/.orch/auth/codex",
+  codexAuthPath: "./.spawn/.orch/auth/codex",
+  codexSharedAuthPath: "./.spawn/.orch/auth/codex",
   codexHome: "/home/dev/.codex",
-  geminiAuthPath: "./.docker-git/.orch/auth/gemini",
+  geminiAuthPath: "./.spawn/.orch/auth/gemini",
   geminiHome: "/home/dev/.gemini",
   cpuLimit: defaultCpuLimit,
   ramLimit: defaultRamLimit,

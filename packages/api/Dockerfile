@@ -20,7 +20,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter ./packages/lib build
 RUN pnpm --filter ./packages/api build
 
-ENV DOCKER_GIT_API_PORT=3334
+ENV SPAWN_API_PORT=3334
 EXPOSE 3334
 
 CMD ["node", "packages/api/dist/src/main.js"]

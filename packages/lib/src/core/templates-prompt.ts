@@ -1,6 +1,6 @@
-// CHANGE: standardize docker-git prompt script for interactive shells
+// CHANGE: standardize spawn prompt script for interactive shells
 // WHY: keep prompt consistent between Dockerfile and entrypoint
-// QUOTE(ТЗ): "Промт должен создаваться нашим docker-git тулой"
+// QUOTE(ТЗ): "Промт должен создаваться нашим spawn тулой"
 // REF: user-request-2026-02-05-restore-prompt
 // SOURCE: n/a
 // FORMAT THEOREM: forall s in InteractiveShells: prompt(s) -> includes(time, path, branch|empty)
@@ -8,8 +8,8 @@
 // EFFECT: n/a
 // INVARIANT: script is deterministic
 // COMPLEXITY: O(1)
-const dockerGitPromptScript = `docker_git_branch() { git rev-parse --abbrev-ref HEAD 2>/dev/null; }
-docker_git_terminal_sanitize() {
+const dockerGitPromptScript = `spawn_branch() { git rev-parse --abbrev-ref HEAD 2>/dev/null; }
+spawn_terminal_sanitize() {
   # Recover interactive TTY settings after abrupt exits from fullscreen/raw-mode tools.
   if [ -t 0 ]; then
     stty sane 2>/dev/null || true
@@ -18,7 +18,7 @@ docker_git_terminal_sanitize() {
     printf "\\033[0m\\033[?25h\\033[?1l\\033>\\033[?1000l\\033[?1002l\\033[?1003l\\033[?1005l\\033[?1006l\\033[?1015l\\033[?1007l\\033[?1004l\\033[?2004l\\033[>4;0m\\033[>4m\\033[<u"
   fi
 }
-docker_git_short_pwd() {
+spawn_short_pwd() {
   local full_path
   full_path="\${PWD:-}"
   if [[ -z "$full_path" ]]; then
@@ -69,12 +69,12 @@ docker_git_short_pwd() {
 
   printf "%s" "$result"
 }
-docker_git_prompt_apply() {
-  docker_git_terminal_sanitize
+spawn_prompt_apply() {
+  spawn_terminal_sanitize
   local b
-  b="$(docker_git_branch)"
+  b="$(spawn_branch)"
   local short_pwd
-  short_pwd="$(docker_git_short_pwd)"
+  short_pwd="$(spawn_short_pwd)"
   local base="[\\t] $short_pwd"
   if [ -n "$b" ]; then
     PS1="\${base} (\${b})> "
@@ -83,9 +83,9 @@ docker_git_prompt_apply() {
   fi
 }
 if [ -n "$PROMPT_COMMAND" ]; then
-  PROMPT_COMMAND="docker_git_prompt_apply;$PROMPT_COMMAND"
+  PROMPT_COMMAND="spawn_prompt_apply;$PROMPT_COMMAND"
 else
-  PROMPT_COMMAND="docker_git_prompt_apply"
+  PROMPT_COMMAND="spawn_prompt_apply"
 fi`
 
 export const renderPromptScript = (): string => dockerGitPromptScript
@@ -187,8 +187,8 @@ unsetopt LIST_BEEP
 zstyle ':completion:*' tag-order builtins commands aliases reserved-words functions
 
 autoload -Uz add-zsh-hook
-docker_git_branch() { git rev-parse --abbrev-ref HEAD 2>/dev/null; }
-docker_git_terminal_sanitize() {
+spawn_branch() { git rev-parse --abbrev-ref HEAD 2>/dev/null; }
+spawn_terminal_sanitize() {
   # Recover interactive TTY settings after abrupt exits from fullscreen/raw-mode tools.
   if [[ -t 0 ]]; then
     stty sane 2>/dev/null || true
@@ -197,7 +197,7 @@ docker_git_terminal_sanitize() {
     printf "\\033[0m\\033[?25h\\033[?1l\\033>\\033[?1000l\\033[?1002l\\033[?1003l\\033[?1005l\\033[?1006l\\033[?1015l\\033[?1007l\\033[?1004l\\033[?2004l\\033[>4;0m\\033[>4m\\033[<u"
   fi
 }
-docker_git_short_pwd() {
+spawn_short_pwd() {
   local full_path="\${PWD:-}"
   if [[ -z "$full_path" ]]; then
     print -r -- "?"
@@ -253,12 +253,12 @@ docker_git_short_pwd() {
 
   print -r -- "$result"
 }
-docker_git_prompt_apply() {
-  docker_git_terminal_sanitize
+spawn_prompt_apply() {
+  spawn_terminal_sanitize
   local b
-  b="$(docker_git_branch)"
+  b="$(spawn_branch)"
   local short_pwd
-  short_pwd="$(docker_git_short_pwd)"
+  short_pwd="$(spawn_short_pwd)"
   local base="[%*] $short_pwd"
   if [[ -n "$b" ]]; then
     PROMPT="$base ($b)> "
@@ -266,7 +266,7 @@ docker_git_prompt_apply() {
     PROMPT="$base> "
   fi
 }
-add-zsh-hook precmd docker_git_prompt_apply
+add-zsh-hook precmd spawn_prompt_apply
 
 HISTFILE="\${HISTFILE:-$HOME/.zsh_history}"
 HISTSIZE="\${HISTSIZE:-10000}"
@@ -285,12 +285,12 @@ fi
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
 
-if [[ "\${DOCKER_GIT_ZSH_AUTOSUGGEST:-1}" == "1" ]] && [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+if [[ "\${SPAWN_ZSH_AUTOSUGGEST:-1}" == "1" ]] && [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
   # Suggest from history first, then fall back to completion (commands + paths).
   # This gives "ghost text" suggestions without needing to press <Tab>.
-  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="\${DOCKER_GIT_ZSH_AUTOSUGGEST_STYLE:-fg=8,italic}"
-  if [[ -n "\${DOCKER_GIT_ZSH_AUTOSUGGEST_STRATEGY-}" ]]; then
-    ZSH_AUTOSUGGEST_STRATEGY=(\${=DOCKER_GIT_ZSH_AUTOSUGGEST_STRATEGY})
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="\${SPAWN_ZSH_AUTOSUGGEST_STYLE:-fg=8,italic}"
+  if [[ -n "\${SPAWN_ZSH_AUTOSUGGEST_STRATEGY-}" ]]; then
+    ZSH_AUTOSUGGEST_STRATEGY=(\${=SPAWN_ZSH_AUTOSUGGEST_STRATEGY})
   else
     ZSH_AUTOSUGGEST_STRATEGY=(history completion)
   fi
@@ -300,8 +300,8 @@ fi`
 export const renderZshConfig = (): string => dockerGitZshConfig
 
 // CHANGE: add git branch info to interactive shell prompt
-// WHY: restore docker-git prompt with time + path + branch
-// QUOTE(ТЗ): "Промт должен создаваться нашим docker-git тулой"
+// WHY: restore spawn prompt with time + path + branch
+// QUOTE(ТЗ): "Промт должен создаваться нашим spawn тулой"
 // REF: user-request-2026-02-05-restore-prompt
 // SOURCE: n/a
 // FORMAT THEOREM: forall s in InteractiveShells: prompt(s) -> includes(time, path, branch|empty)
@@ -337,9 +337,9 @@ RUN cat <<'EOF' > /etc/zsh/zshrc
 ${renderZshConfig()}
 EOF`
 
-// CHANGE: ensure the docker-git prompt is always available at runtime
+// CHANGE: ensure the spawn prompt is always available at runtime
 // WHY: --force rebuilds can reuse cached layers that left an empty prompt file
-// QUOTE(ТЗ): "Промт должен создаваться нашим docker-git тулой"
+// QUOTE(ТЗ): "Промт должен создаваться нашим spawn тулой"
 // REF: user-request-2026-02-05-restore-prompt
 // SOURCE: n/a
 // FORMAT THEOREM: forall s in InteractiveShells: prompt(s) -> includes(time, path, branch|empty)
@@ -348,7 +348,7 @@ EOF`
 // INVARIANT: /etc/profile.d/zz-prompt.sh is non-empty after entrypoint
 // COMPLEXITY: O(1)
 export const renderEntrypointPrompt = (): string =>
-  String.raw`# Ensure docker-git prompt is configured for interactive shells
+  String.raw`# Ensure spawn prompt is configured for interactive shells
 PROMPT_PATH="/etc/profile.d/zz-prompt.sh"
 if [[ ! -s "$PROMPT_PATH" ]]; then
   cat <<'EOF' > "$PROMPT_PATH"

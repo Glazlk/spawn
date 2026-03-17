@@ -16,7 +16,7 @@ import {
   withProjectIndexAndSsh
 } from "./projects-core.js"
 
-// CHANGE: list docker-git projects with SSH connection info
+// CHANGE: list spawn projects with SSH connection info
 // WHY: provide a deterministic inventory of created environments
 // QUOTE(ТЗ): "мне нужны мои... доступы к ним по SSH"
 // REF: user-request-2026-01-27-list
@@ -51,11 +51,11 @@ export const listProjects: Effect.Effect<
         }
       }
       if (available.length === 0) {
-        yield* _(Effect.log(`No readable docker-git projects found in ${index.projectsRoot}`))
+        yield* _(Effect.log(`No readable spawn projects found in ${index.projectsRoot}`))
         return
       }
 
-      yield* _(Effect.log(`Found ${available.length} docker-git project(s) in ${index.projectsRoot}`))
+      yield* _(Effect.log(`Found ${available.length} spawn project(s) in ${index.projectsRoot}`))
       for (const summary of available) {
         yield* _(Effect.log(renderProjectSummary(summary)))
       }
@@ -64,7 +64,7 @@ export const listProjects: Effect.Effect<
   Effect.asVoid
 )
 
-// CHANGE: collect docker-git connection info lines without logging
+// CHANGE: collect spawn connection info lines without logging
 // WHY: allow TUI to render connection info inline
 // QUOTE(ТЗ): "А кнопка \"Show connection info\" ничего не отображает"
 // REF: user-request-2026-02-01-tui-info
@@ -129,7 +129,7 @@ export const listProjectSummaries: Effect.Effect<
   ListProjectsContext
 > = listProjectValues(loadProjectSummary, renderProjectSummary, emptySummaries)
 
-// CHANGE: load docker-git projects for TUI selection
+// CHANGE: load spawn projects for TUI selection
 // WHY: provide structured project data without noisy logs
 // QUOTE(ТЗ): "А ты можешь сделать удобный выбор проектов?"
 // REF: user-request-2026-02-02-select-project
@@ -145,7 +145,7 @@ export const listProjectItems: Effect.Effect<
   ListProjectsContext
 > = listProjectValues(loadProjectItem, (value) => value, emptyItems)
 
-// CHANGE: list only running docker-git projects (for "Stop container" UI)
+// CHANGE: list only running spawn projects (for "Stop container" UI)
 // WHY: stopping already-stopped projects is confusing and noisy
 // QUOTE(ТЗ): "Смысл мне пытаться остановить тот контейнер который уже остановлен?"
 // REF: user-request-2026-02-07-stop-only-running

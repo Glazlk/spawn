@@ -102,9 +102,9 @@ export const resolveGithubToken = (
     }
 
     const candidates: ReadonlyArray<string> = [
-      // Canonical layout: ~/.docker-git/.orch/env/global.env
+      // Canonical layout: ~/.spawn/.orch/env/global.env
       path.join(root, ".orch", "env", "global.env"),
-      // Legacy layout (kept for backward compatibility): ~/.docker-git/secrets/global.env
+      // Legacy layout (kept for backward compatibility): ~/.spawn/secrets/global.env
       path.join(root, "secrets", "global.env")
     ]
 
@@ -132,13 +132,13 @@ export const withGithubAskpassEnv = <A, E, R>(
   Effect.scoped(
     Effect.gen(function*(_) {
       const fs = yield* _(FileSystem.FileSystem)
-      const askpassPath = yield* _(fs.makeTempFileScoped({ prefix: "docker-git-askpass-" }))
+      const askpassPath = yield* _(fs.makeTempFileScoped({ prefix: "spawn-askpass-" }))
       const contents = [
         "#!/bin/sh",
         "case \"$1\" in",
         "  *Username*) echo \"x-access-token\" ;;",
-        "  *Password*) echo \"${DOCKER_GIT_GITHUB_TOKEN}\" ;;",
-        "  *) echo \"${DOCKER_GIT_GITHUB_TOKEN}\" ;;",
+        "  *Password*) echo \"${SPAWN_GITHUB_TOKEN}\" ;;",
+        "  *) echo \"${SPAWN_GITHUB_TOKEN}\" ;;",
         "esac",
         ""
       ].join("\n")
@@ -146,7 +146,7 @@ export const withGithubAskpassEnv = <A, E, R>(
       yield* _(fs.chmod(askpassPath, 0o700))
       const env: GitAuthEnv = {
         ...gitBaseEnv,
-        DOCKER_GIT_GITHUB_TOKEN: token,
+        SPAWN_GITHUB_TOKEN: token,
         GIT_ASKPASS: askpassPath,
         GIT_ASKPASS_REQUIRE: "force"
       }

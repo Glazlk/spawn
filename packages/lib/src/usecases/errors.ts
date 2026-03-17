@@ -110,7 +110,7 @@ const renderPrimaryError = (error: NonParseError): string | null =>
     ),
     Match.when(
       { _tag: "ScrapArchiveNotFoundError" },
-      ({ path }) => `Scrap archive not found: ${path} (run docker-git scrap export first)`
+      ({ path }) => `Scrap archive not found: ${path} (run spawn scrap export first)`
     ),
     Match.when(
       { _tag: "ScrapArchiveInvalidError" },
@@ -134,11 +134,11 @@ const renderPrimaryError = (error: NonParseError): string | null =>
 
 const renderConfigError = (error: NonParseError): string | null => {
   if (error._tag === "ConfigNotFoundError") {
-    return `docker-git.json not found: ${error.path} (run docker-git create in that directory)`
+    return `spawn.json not found: ${error.path} (run spawn create in that directory)`
   }
 
   if (error._tag === "ConfigDecodeError") {
-    return `Invalid docker-git.json at ${error.path}: ${error.message}`
+    return `Invalid spawn.json at ${error.path}: ${error.message}`
   }
 
   return null

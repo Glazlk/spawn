@@ -44,7 +44,7 @@ const ensureGithubOrchLayout = (
     envProjectPath: defaultTemplateConfig.envProjectPath,
     codexAuthPath: defaultTemplateConfig.codexAuthPath,
     ghAuthPath: ghAuthRoot,
-    claudeAuthPath: ".docker-git/.orch/auth/claude"
+    claudeAuthPath: ".spawn/.orch/auth/claude"
   })
 
 const normalizeGithubLabel = (value: string | null): string => {
@@ -219,11 +219,11 @@ const runGithubInteractiveLogin = (
   })
 
 // CHANGE: login to GitHub by persisting a token in the shared env file
-// WHY: make GH_TOKEN available to all docker-git projects
+// WHY: make GH_TOKEN available to all spawn projects
 // QUOTE(ТЗ): "система авторизации"
 // REF: user-request-2026-01-28-auth
 // SOURCE: n/a
-// FORMAT THEOREM: forall t: login(t) -> env(GITHUB_TOKEN)=t ∧ cloned(~/.docker-git)
+// FORMAT THEOREM: forall t: login(t) -> env(GITHUB_TOKEN)=t ∧ cloned(~/.spawn)
 // PURITY: SHELL
 // EFFECT: Effect<void, CommandFailedError | PlatformError, CommandExecutor>
 // INVARIANT: token is never logged; state repo setup is best-effort

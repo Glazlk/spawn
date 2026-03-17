@@ -1,0 +1,338 @@
+import { describe, expect, it } from "@effect/vitest"
+import { Effect } from "effect"
+
+import { defaultTemplateConfig } from "@spawn-dev/lib/core/domain"
+import { expandContainerHome } from "@spawn-dev/lib/usecases/scrap-path"
+import {
+  type CreateCommand,
+  expectAttachProjectDirCommand,
+  expectCreateCommand,
+  expectParseErrorTag,
+  expectProjectDirRunUpCommand,
+  parseOrThrow
+} from "./parser-helpers.js"
+
+const expectCreateDefaults = (command: CreateCommand) => {
+  expect(command.config.repoUrl).toBe("https://github.com/org/repo.git")
+  expect(command.config.repoRef).toBe(defaultTemplateConfig.repoRef)
+  expect(command.outDir).toBe(".spawn/org/repo")
+  expect(command.runUp).toBe(true)
+  expect(command.forceEnv).toBe(false)
+  expect(command.config.cpuLimit).toBe("30%")
+  expect(command.config.ramLimit).toBe("30%")
+  expect(command.config.dockerNetworkMode).toBe("shared")
+  expect(command.config.dockerSharedNetworkName).toBe("spawn-shared")
+}
+
+const expandDefaultTargetDir = (path: string): string => expandContainerHome(defaultTemplateConfig.sshUser, path)
+
+describe("parseArgs", () => {
+  it.effect("parses create command with defaults", () =>
+    expectCreateCommand(["create", "--repo-url", "https://github.com/org/repo.git"], (command) => {
+      expectCreateDefaults(command)
+      expect(command.openSsh).toBe(false)
+      expect(command.waitForClone).toBe(false)
+      expect(command.config.containerName).toBe("dg-repo")
+      expect(command.config.serviceName).toBe("dg-repo")
+      expect(command.config.volumeName).toBe("dg-repo-home")
+      expect(command.config.sshPort).toBe(defaultTemplateConfig.sshPort)
+    }))
+
+  it.effect("parses create resource limit flags", () =>
+    expectCreateCommand(
+      ["create", "--repo-url", "https://github.com/org/repo.git", "--cpu", "30%", "--ram", "3072m"],
+      (command) => {
+        expect(command.config.cpuLimit).toBe("30%")
+        expect(command.config.ramLimit).toBe("3072m")
+      }
+    ))
+
+  it.effect("accepts legacy compose-style limit aliases", () =>
+    expectCreateCommand(
+      ["create", "--repo-url", "https://github.com/org/repo.git", "--cpus", "1.5", "--memory", "4g"],
+      (command) => {
+        expect(command.config.cpuLimit).toBe("1.5")
+        expect(command.config.ramLimit).toBe("4g")
+      }
+    ))
+
+  it.effect("rejects unitless RAM absolute limit", () =>
+    expectParseErrorTag(["create", "--repo-url", "https://github.com/org/repo.git", "--ram", "4096"], "InvalidOption"))
+
+  it.effect("parses create command with issue url into isolated defaults", () =>
+    expectCreateCommand(["create", "--repo-url", "https://github.com/org/repo/issues/9"], (command) => {
+      expect(command.config.repoUrl).toBe("https://github.com/org/repo.git")
+      expect(command.config.repoRef).toBe("issue-9")
+      expect(command.outDir).toBe(".spawn/org/repo/issue-9")
+      expect(command.openSsh).toBe(false)
+      expect(command.waitForClone).toBe(false)
+      expect(command.config.containerName).toBe("dg-repo-issue-9")
+      expect(command.config.serviceName).toBe("dg-repo-issue-9")
+      expect(command.config.volumeName).toBe("dg-repo-issue-9-home")
+    }))
+
+  it.effect("parses create command without repo url into empty workspace defaults", () =>
+    expectCreateCommand(["create"], (command) => {
+      expect(command.config.repoUrl).toBe("")
+      expect(command.config.repoRef).toBe(defaultTemplateConfig.repoRef)
+      expect(command.outDir).toBe(".spawn/app")
+      expect(command.openSsh).toBe(false)
+      expect(command.waitForClone).toBe(false)
+      expect(command.config.containerName).toBe("dg-app")
+      expect(command.config.serviceName).toBe("dg-app")
+      expect(command.config.volumeName).toBe("dg-app-home")
+      expect(command.config.targetDir).toBe(expandDefaultTargetDir(defaultTemplateConfig.targetDir))
+    }))
+
+  it.effect("fails clone when repo url is missing", () => expectParseErrorTag(["clone"], "MissingRequiredOption"))
+
+  it.effect("parses clone command with positional repo url", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git"], (command) => {
+      expectCreateDefaults(command)
+      expect(command.openSsh).toBe(true)
+      expect(command.waitForClone).toBe(true)
+      expect(command.config.targetDir).toBe(
+        expandDefaultTargetDir("~/workspaces/org/repo")
+      )
+    }))
+
+  it.effect("parses clone branch alias", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--branch", "feature-x"], (command) => {
+      expect(command.config.repoRef).toBe("feature-x")
+    }))
+
+  it.effect("supports disabling SSH auto-open for clone", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--no-ssh"], (command) => {
+      expect(command.openSsh).toBe(false)
+    }))
+
+  it.effect("parses clone git token label from inline option and normalizes it", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--git-token=#agiens"], (command) => {
+      expect(command.config.gitTokenLabel).toBe("AGIENS")
+    }))
+
+  it.effect("parses clone codex/claude token labels from inline options and normalizes them", () =>
+    expectCreateCommand(
+      [
+        "clone",
+        "https://github.com/org/repo.git",
+        "--codex-token= Team A ",
+        "--claude-token=---AGIENS:::Claude---"
+      ],
+      (command) => {
+        expect(command.config.codexAuthLabel).toBe("team-a")
+        expect(command.config.claudeAuthLabel).toBe("agiens-claude")
+      }
+    ))
+
+  it.effect("supports enabling SSH auto-open for create", () =>
+    expectCreateCommand(["create", "--repo-url", "https://github.com/org/repo.git", "--ssh"], (command) => {
+      expect(command.openSsh).toBe(true)
+    }))
+
+  it.effect("parses bare --auto for clone", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--auto"], (command) => {
+      expect(command.config.agentAuto).toBe(true)
+      expect(command.config.agentMode).toBeUndefined()
+    }))
+
+  it.effect("parses --auto=claude for clone", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--auto=claude"], (command) => {
+      expect(command.config.agentAuto).toBe(true)
+      expect(command.config.agentMode).toBe("claude")
+    }))
+
+  it.effect("parses --auto=codex for clone", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--auto=codex"], (command) => {
+      expect(command.config.agentAuto).toBe(true)
+      expect(command.config.agentMode).toBe("codex")
+    }))
+
+  it.effect("rejects legacy --claude flag", () =>
+    expectParseErrorTag(["clone", "https://github.com/org/repo.git", "--claude", "--auto"], "InvalidOption"))
+
+  it.effect("rejects legacy --codex flag", () =>
+    expectParseErrorTag(["clone", "https://github.com/org/repo.git", "--codex", "--auto"], "InvalidOption"))
+
+  it.effect("rejects invalid --auto value", () =>
+    expectParseErrorTag(["clone", "https://github.com/org/repo.git", "--auto=foo"], "InvalidOption"))
+
+  it.effect("parses force-env flag for clone", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--force-env"], (command) => {
+      expect(command.force).toBe(false)
+      expect(command.forceEnv).toBe(true)
+    }))
+
+  it.effect("supports force + force-env together", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo.git", "--force", "--force-env"], (command) => {
+      expect(command.force).toBe(true)
+      expect(command.forceEnv).toBe(true)
+    }))
+
+  it.effect("parses GitHub tree url as repo + ref", () =>
+    expectCreateCommand(["clone", "https://github.com/agiens/crm/tree/vova-fork"], (command) => {
+      expect(command.config.repoUrl).toBe("https://github.com/agiens/crm.git")
+      expect(command.config.repoRef).toBe("vova-fork")
+      expect(command.outDir).toBe(".spawn/agiens/crm")
+      expect(command.config.targetDir).toBe(
+        expandDefaultTargetDir("~/workspaces/agiens/crm")
+      )
+    }))
+
+  it.effect("parses GitHub issue url as isolated project + issue branch", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo/issues/5"], (command) => {
+      expect(command.config.repoUrl).toBe("https://github.com/org/repo.git")
+      expect(command.config.repoRef).toBe("issue-5")
+      expect(command.outDir).toBe(".spawn/org/repo/issue-5")
+      expect(command.config.targetDir).toBe(
+        expandDefaultTargetDir("~/workspaces/org/repo/issue-5")
+      )
+      expect(command.config.containerName).toBe("dg-repo-issue-5")
+      expect(command.config.serviceName).toBe("dg-repo-issue-5")
+      expect(command.config.volumeName).toBe("dg-repo-issue-5-home")
+    }))
+
+  it.effect("parses GitHub PR url as isolated project", () =>
+    expectCreateCommand(["clone", "https://github.com/org/repo/pull/42"], (command) => {
+      expect(command.config.repoUrl).toBe("https://github.com/org/repo.git")
+      expect(command.config.repoRef).toBe("refs/pull/42/head")
+      expect(command.outDir).toBe(".spawn/org/repo/pr-42")
+      expect(command.config.targetDir).toBe(
+        expandDefaultTargetDir("~/workspaces/org/repo/pr-42")
+      )
+      expect(command.config.containerName).toBe("dg-repo-pr-42")
+      expect(command.config.serviceName).toBe("dg-repo-pr-42")
+      expect(command.config.volumeName).toBe("dg-repo-pr-42-home")
+    }))
+
+  it.effect("parses attach with GitHub issue url into issue workspace", () =>
+    expectAttachProjectDirCommand(["attach", "https://github.com/org/repo/issues/7"], ".spawn/org/repo/issue-7"))
+
+  it.effect("parses open with GitHub issue url into issue workspace", () =>
+    expectAttachProjectDirCommand(["open", "https://github.com/org/repo/issues/7"], ".spawn/org/repo/issue-7"))
+
+  it.effect("parses mcp-playwright command in current directory", () =>
+    expectProjectDirRunUpCommand(["mcp-playwright"], "McpPlaywrightUp", ".", true))
+
+  it.effect("parses mcp-playwright command with --no-up", () =>
+    expectProjectDirRunUpCommand(["mcp-playwright", "--no-up"], "McpPlaywrightUp", ".", false))
+
+  it.effect("parses mcp-playwright with positional repo url into project dir", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["mcp-playwright", "https://github.com/org/repo.git"])
+      if (command._tag !== "McpPlaywrightUp") {
+        throw new Error("expected McpPlaywrightUp command")
+      }
+      expect(command.projectDir).toBe(".spawn/org/repo")
+    }))
+
+  it.effect("parses apply command in current directory", () =>
+    expectProjectDirRunUpCommand(["apply"], "Apply", ".", true))
+
+  it.effect("parses apply command with --no-up", () =>
+    expectProjectDirRunUpCommand(["apply", "--no-up"], "Apply", ".", false))
+
+  it.effect("parses apply with positional repo url into project dir", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["apply", "https://github.com/org/repo.git"])
+      if (command._tag !== "Apply") {
+        throw new Error("expected Apply command")
+      }
+      expect(command.projectDir).toBe(".spawn/org/repo")
+    }))
+
+  it.effect("parses apply token and mcp overrides", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow([
+        "apply",
+        "--git-token=agien_main",
+        "--codex-token=Team A",
+        "--claude-token=Team B",
+        "--cpu=2",
+        "--ram=4g",
+        "--mcp-playwright",
+        "--no-up"
+      ])
+      if (command._tag !== "Apply") {
+        throw new Error("expected Apply command")
+      }
+      expect(command.runUp).toBe(false)
+      expect(command.gitTokenLabel).toBe("agien_main")
+      expect(command.codexTokenLabel).toBe("Team A")
+      expect(command.claudeTokenLabel).toBe("Team B")
+      expect(command.cpuLimit).toBe("2")
+      expect(command.ramLimit).toBe("4g")
+      expect(command.enableMcpPlaywright).toBe(true)
+    }))
+
+  it.effect("parses down-all command", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["down-all"])
+      expect(command._tag).toBe("DownAll")
+    }))
+
+  it.effect("parses state path command", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["state", "path"])
+      expect(command._tag).toBe("StatePath")
+    }))
+
+  it.effect("parses state init command", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["state", "init", "--repo-url", "https://github.com/org/state.git"])
+      if (command._tag !== "StateInit") {
+        throw new Error("expected StateInit command")
+      }
+      expect(command.repoUrl).toBe("https://github.com/org/state.git")
+      expect(command.repoRef).toBe("main")
+    }))
+
+  it.effect("parses state commit command", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["state", "commit", "-m", "sync state"])
+      if (command._tag !== "StateCommit") {
+        throw new Error("expected StateCommit command")
+      }
+      expect(command.message).toBe("sync state")
+    }))
+
+  it.effect("parses state sync command", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["state", "sync", "-m", "sync state"])
+      if (command._tag !== "StateSync") {
+        throw new Error("expected StateSync command")
+      }
+      expect(command.message).toBe("sync state")
+    }))
+
+  it.effect("parses scrap export with defaults", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["scrap", "export"])
+      if (command._tag !== "ScrapExport") {
+        throw new Error("expected ScrapExport command")
+      }
+      expect(command.projectDir).toBe(".")
+      expect(command.archivePath).toBe(".orch/scrap/session")
+    }))
+
+  it.effect("fails scrap import without archive", () =>
+    expectParseErrorTag(["scrap", "import"], "MissingRequiredOption"))
+
+  it.effect("parses scrap import wipe defaults", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["scrap", "import", "--archive", "workspace.tar.gz"])
+      if (command._tag !== "ScrapImport") {
+        throw new Error("expected ScrapImport command")
+      }
+      expect(command.wipe).toBe(true)
+    }))
+
+  it.effect("parses scrap import --no-wipe", () =>
+    Effect.sync(() => {
+      const command = parseOrThrow(["scrap", "import", "--archive", "workspace.tar.gz", "--no-wipe"])
+      if (command._tag !== "ScrapImport") {
+        throw new Error("expected ScrapImport command")
+      }
+      expect(command.wipe).toBe(false)
+    }))
+})

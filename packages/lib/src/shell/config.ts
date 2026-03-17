@@ -84,7 +84,7 @@ const decodeProjectConfig = (
     onRight: (value) => Effect.succeed(value)
   })
 
-// CHANGE: read and decode docker-git.json from disk
+// CHANGE: read and decode spawn.json from disk
 // WHY: keep unknown inputs at the boundary and validate with schema
 // QUOTE(ТЗ): "интерфейс в котором можно авторизировать все что мы хотим иметь"
 // REF: user-request-2026-01-07
@@ -103,7 +103,7 @@ export const readProjectConfig = (
 > =>
   Effect.gen(function*(_) {
     const { fs, path, resolved } = yield* _(resolveBaseDir(baseDir))
-    const configPath = path.join(resolved, "docker-git.json")
+    const configPath = path.join(resolved, "spawn.json")
 
     const exists = yield* _(fs.exists(configPath))
     if (!exists) {

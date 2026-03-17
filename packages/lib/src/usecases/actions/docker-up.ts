@@ -24,10 +24,10 @@ import { buildSshCommand } from "../projects.js"
 const maxPortAttempts = 25
 const clonePollInterval = Duration.seconds(1)
 const agentPollInterval = Duration.seconds(2)
-const cloneDonePath = "/run/docker-git/clone.done"
-const cloneFailPath = "/run/docker-git/clone.failed"
-const agentDonePath = "/run/docker-git/agent.done"
-const agentFailPath = "/run/docker-git/agent.failed"
+const cloneDonePath = "/run/spawn/clone.done"
+const cloneFailPath = "/run/spawn/clone.failed"
+const agentDonePath = "/run/spawn/agent.done"
+const agentFailPath = "/run/spawn/agent.failed"
 
 const logSshAccess = (
   baseDir: string,

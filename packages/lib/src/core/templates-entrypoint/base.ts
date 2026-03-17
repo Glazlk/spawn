@@ -32,7 +32,7 @@ MCP_PLAYWRIGHT_ISOLATED="\${MCP_PLAYWRIGHT_ISOLATED:-1}"
 
 SSH_ENV_PATH="/home/${config.sshUser}/.ssh/environment"
 
-docker_git_upsert_ssh_env() {
+spawn_upsert_ssh_env() {
   local key="$1"
   local value="$2"
 
@@ -52,8 +52,8 @@ docker_git_upsert_ssh_env() {
 }`
 
 export const renderEntrypointPackageCache = (config: TemplateConfig): string =>
-  `# Share package manager caches across all docker-git containers
-PACKAGE_CACHE_ROOT="/home/${config.sshUser}/.docker-git/.cache/packages"
+  `# Share package manager caches across all spawn containers
+PACKAGE_CACHE_ROOT="/home/${config.sshUser}/.spawn/.cache/packages"
 PACKAGE_PNPM_STORE="\${npm_config_store_dir:-\${PNPM_STORE_DIR:-$PACKAGE_CACHE_ROOT/pnpm/store}}"
 PACKAGE_NPM_CACHE="\${npm_config_cache:-\${NPM_CONFIG_CACHE:-$PACKAGE_CACHE_ROOT/npm}}"
 PACKAGE_YARN_CACHE="\${YARN_CACHE_FOLDER:-$PACKAGE_CACHE_ROOT/yarn}"
@@ -61,20 +61,20 @@ PACKAGE_YARN_CACHE="\${YARN_CACHE_FOLDER:-$PACKAGE_CACHE_ROOT/yarn}"
 mkdir -p "$PACKAGE_PNPM_STORE" "$PACKAGE_NPM_CACHE" "$PACKAGE_YARN_CACHE"
 chown -R 1000:1000 "$PACKAGE_CACHE_ROOT" || true
 
-cat <<EOF > /etc/profile.d/docker-git-package-cache.sh
+cat <<EOF > /etc/profile.d/spawn-package-cache.sh
 export PNPM_STORE_DIR="$PACKAGE_PNPM_STORE"
 export npm_config_store_dir="$PACKAGE_PNPM_STORE"
 export NPM_CONFIG_CACHE="$PACKAGE_NPM_CACHE"
 export npm_config_cache="$PACKAGE_NPM_CACHE"
 export YARN_CACHE_FOLDER="$PACKAGE_YARN_CACHE"
 EOF
-chmod 0644 /etc/profile.d/docker-git-package-cache.sh
+chmod 0644 /etc/profile.d/spawn-package-cache.sh
 
-docker_git_upsert_ssh_env "PNPM_STORE_DIR" "$PACKAGE_PNPM_STORE"
-docker_git_upsert_ssh_env "npm_config_store_dir" "$PACKAGE_PNPM_STORE"
-docker_git_upsert_ssh_env "NPM_CONFIG_CACHE" "$PACKAGE_NPM_CACHE"
-docker_git_upsert_ssh_env "npm_config_cache" "$PACKAGE_NPM_CACHE"
-docker_git_upsert_ssh_env "YARN_CACHE_FOLDER" "$PACKAGE_YARN_CACHE"`
+spawn_upsert_ssh_env "PNPM_STORE_DIR" "$PACKAGE_PNPM_STORE"
+spawn_upsert_ssh_env "npm_config_store_dir" "$PACKAGE_PNPM_STORE"
+spawn_upsert_ssh_env "NPM_CONFIG_CACHE" "$PACKAGE_NPM_CACHE"
+spawn_upsert_ssh_env "npm_config_cache" "$PACKAGE_NPM_CACHE"
+spawn_upsert_ssh_env "YARN_CACHE_FOLDER" "$PACKAGE_YARN_CACHE"`
 
 export const renderEntrypointAuthorizedKeys = (config: TemplateConfig): string =>
   `# 1) Authorized keys are mounted from host at /authorized_keys
@@ -120,7 +120,7 @@ fi
 USER_ZSHRC="/home/${config.sshUser}/.zshrc"
 if [[ ! -f "$USER_ZSHRC" ]]; then
   cat <<'EOF' > "$USER_ZSHRC"
-# docker-git default zshrc
+# spawn default zshrc
 if [ -f /etc/zsh/zshrc ]; then
   source /etc/zsh/zshrc
 fi
@@ -140,8 +140,8 @@ fi`
 
 export const renderEntrypointBaseline = (): string =>
   `# 4.5) Snapshot baseline processes for terminal session filtering
-mkdir -p /run/docker-git
-BASELINE_PATH="/run/docker-git/terminal-baseline.pids"
+mkdir -p /run/spawn
+BASELINE_PATH="/run/spawn/terminal-baseline.pids"
 if [[ ! -f "$BASELINE_PATH" ]]; then
   ps -eo pid= > "$BASELINE_PATH" || true
 fi`
@@ -156,11 +156,11 @@ fi
 
 # Also disable sshd's own banners (e.g. "Last login")
 mkdir -p /etc/ssh/sshd_config.d || true
-DOCKER_GIT_SSHD_CONF="/etc/ssh/sshd_config.d/zz-docker-git-clean.conf"
-cat <<'EOF' > "$DOCKER_GIT_SSHD_CONF"
+SPAWN_SSHD_CONF="/etc/ssh/sshd_config.d/zz-spawn-clean.conf"
+cat <<'EOF' > "$SPAWN_SSHD_CONF"
 PrintMotd no
 PrintLastLog no
 EOF
-chmod 0644 "$DOCKER_GIT_SSHD_CONF" || true`
+chmod 0644 "$SPAWN_SSHD_CONF" || true`
 
 export const renderEntrypointSshd = (): string => `# 5) Run sshd in foreground\nexec /usr/sbin/sshd -D`

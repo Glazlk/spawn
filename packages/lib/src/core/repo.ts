@@ -254,7 +254,7 @@ const parseGithubPrUrl = (input: string): ResolvedRepoInput | null => {
 }
 
 // CHANGE: normalize GitHub tree/blob URLs into repo + ref
-// WHY: allow docker-git clone to accept branch URLs like /tree/<branch>
+// WHY: allow spawn clone to accept branch URLs like /tree/<branch>
 // QUOTE(ТЗ): "вызови --force на https://github.com/agiens/crm/tree/vova-fork"
 // REF: user-request-2026-02-10-github-tree-url
 // SOURCE: n/a
@@ -274,7 +274,7 @@ const parseGithubTreeUrl = (input: string): ResolvedRepoInput | null => {
 }
 
 // CHANGE: normalize GitHub issue URLs into repo URLs
-// WHY: allow docker-git clone to accept issue links directly
+// WHY: allow spawn clone to accept issue links directly
 // QUOTE(ТЗ): "Сразу на issues"
 // REF: user-request-2026-02-05-issues
 // SOURCE: n/a

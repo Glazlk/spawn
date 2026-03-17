@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>spawn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0D0C0A;--paper:#F0EDE8;--orange:#E8521A;--rule:#2A2720;--dim:#9A9080;--mono:'JetBrains Mono',monospace;--display:'Bebas Neue',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--paper);font-family:var(--mono);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none;cursor:pointer}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;border-bottom:1px solid var(--rule);background:var(--ink)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:13px;letter-spacing:5px}
+.nav-links{display:flex;gap:0;list-style:none}
+.nav-links li{border-left:1px solid var(--rule)}
+.nav-links a{display:block;padding:0 20px;height:55px;line-height:55px;font-size:10px;letter-spacing:2px;color:var(--dim);transition:color .15s,background .15s}
+.nav-links a:hover{color:var(--paper);background:var(--rule)}
+.nav-gh{border-left:1px solid var(--rule);border-right:1px solid var(--rule);padding:0 20px;height:55px;line-height:55px;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--orange);transition:background .15s}
+.nav-gh:hover{background:rgba(232,82,26,.08)}
+.hero{padding-top:56px;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--rule)}
+.hero-left{border-right:1px solid var(--rule);display:flex;flex-direction:column;justify-content:flex-end;padding:64px 48px;overflow:hidden}
+.hero-wordmark{font-family:var(--display);font-size:clamp(120px,18vw,220px);line-height:.85;letter-spacing:-2px;color:var(--paper);margin-bottom:48px}
+.hero-wordmark .acc{color:var(--orange)}
+.hero-desc{font-size:13px;line-height:1.7;color:var(--dim);max-width:400px;margin-bottom:40px;border-left:2px solid var(--orange);padding-left:16px}
+.hero-install{display:flex;align-items:stretch;border:1px solid var(--rule);width:fit-content}
+.install-label{padding:12px 16px;font-size:9px;letter-spacing:2px;color:var(--dim);border-right:1px solid var(--rule);display:flex;align-items:center;background:rgba(255,255,255,.02)}
+.install-cmd{padding:12px 20px;font-size:12px;font-weight:700;color:var(--paper)}
+.install-copy{background:none;border:none;border-left:1px solid var(--rule);padding:12px 16px;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);cursor:pointer;transition:color .15s,background .15s}
+.install-copy:hover{color:var(--orange);background:rgba(232,82,26,.06)}
+.hero-right{display:flex;flex-direction:column}
+.hero-stat-row{display:grid;grid-template-columns:1fr 1fr;flex-grow:1}
+.hero-stat{padding:40px 36px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);display:flex;flex-direction:column;justify-content:flex-end}
+.hero-stat:nth-child(even){border-right:none}
+.stat-big{font-family:var(--display);font-size:72px;line-height:1;color:var(--orange);margin-bottom:8px}
+.stat-lbl{font-size:10px;letter-spacing:2px;color:var(--dim)}
+.hero-manifesto{padding:40px 48px;border-top:1px solid var(--rule)}
+.manifesto-text{font-family:var(--display);font-size:28px;line-height:1.2;letter-spacing:1px;color:var(--paper)}
+.manifesto-text em{color:var(--orange);font-style:normal}
+.ticker-wrap{overflow:hidden;border-bottom:1px solid var(--rule);padding:14px 0;background:var(--orange)}
+.ticker{display:flex;animation:ticker 20s linear infinite;white-space:nowrap}
+.ticker-item{font-family:var(--display);font-size:15px;letter-spacing:4px;color:var(--ink);padding:0 40px;display:flex;align-items:center;gap:40px}
+.ticker-item::after{content:'›';opacity:.4}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.how-section{display:grid;grid-template-columns:280px 1fr;border-bottom:1px solid var(--rule)}
+.how-label-col{border-right:1px solid var(--rule);padding:64px 40px;display:flex;flex-direction:column;justify-content:space-between}
+.section-num{font-family:var(--display);font-size:80px;line-height:1;color:var(--rule)}
+.section-heading{font-family:var(--display);font-size:42px;line-height:1.05;letter-spacing:1px;color:var(--paper);margin-bottom:16px}
+.section-sub{font-size:11px;line-height:1.7;color:var(--dim)}
+.steps-col{display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:56px 1fr;border-bottom:1px solid var(--rule);transition:background .2s}
+.step:last-child{border-bottom:none}
+.step:hover{background:rgba(255,255,255,.02)}
+.step-n{border-right:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:3px;color:var(--orange);font-weight:700;writing-mode:vertical-lr}
+.step-body{padding:32px 36px}
+.step-title{font-size:12px;font-weight:700;letter-spacing:3px;color:var(--paper);margin-bottom:10px}
+.step-desc{font-size:11px;line-height:1.75;color:var(--dim)}
+.step-cmd{display:inline-block;margin-top:14px;font-size:11px;font-weight:700;color:var(--orange);background:rgba(232,82,26,.07);padding:4px 10px;border-left:2px solid var(--orange)}
+.terminal-section{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--rule);min-height:520px}
+.term-info{border-right:1px solid var(--rule);padding:64px 48px;display:flex;flex-direction:column;justify-content:center}
+.term-info .section-heading{margin-bottom:24px}
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:0;margin-top:32px;border-top:1px solid var(--rule)}
+.feature-list li{padding:14px 0;border-bottom:1px solid var(--rule);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:12px;transition:color .15s}
+.feature-list li:hover{color:var(--paper)}
+.feature-list li::before{content:'';width:6px;height:6px;border:1px solid var(--orange);background:transparent;flex-shrink:0;transition:background .15s}
+.feature-list li:hover::before{background:var(--orange)}
+.term-wrap{padding:48px;display:flex;flex-direction:column;justify-content:center}
+.terminal{border:1px solid var(--rule)}
+.term-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--rule);background:rgba(255,255,255,.03)}
+.term-dots{display:flex;gap:6px}
+.td{width:10px;height:10px;border-radius:50%}
+.td-r{background:#FF5F56}.td-y{background:#FFBD2E}.td-g{background:#27C93F}
+.term-title{font-size:10px;letter-spacing:2px;color:var(--dim)}
+.term-body{padding:24px 20px;font-size:12px;line-height:2.1}
+.p{color:var(--orange);user-select:none}
+.c{color:var(--paper)}
+.o{color:#6A9A6A;padding-left:16px}
+.ok{color:#4CAF50}
+.inf{color:#5B9BD5}
+.mut{color:var(--dim);padding-left:16px}
+.blank{height:6px}
+.cursor-blink{display:inline-block;width:7px;height:13px;background:var(--orange);margin-left:2px;vertical-align:middle;animation:blink 1.1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.features-section{border-bottom:1px solid var(--rule)}
+.features-header{display:grid;grid-template-columns:280px 1fr;border-bottom:1px solid var(--rule)}
+.features-header-left{border-right:1px solid var(--rule);padding:48px 40px}
+.features-header-right{padding:48px 48px;display:flex;align-items:flex-end}
+.features-header-right p{font-size:13px;line-height:1.7;color:var(--dim);max-width:500px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr)}
+.feat{padding:40px 36px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);position:relative;overflow:hidden;transition:background .2s}
+.feat:nth-child(3n){border-right:none}
+.feat:hover{background:rgba(255,255,255,.02)}
+.feat::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--orange);transition:width .3s ease}
+.feat:hover::after{width:100%}
+.feat-title{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--paper);margin-bottom:14px}
+.feat-body{font-size:11px;line-height:1.75;color:var(--dim);margin-bottom:16px}
+.feat-tag{font-size:10px;color:var(--orange);letter-spacing:1px}
+.cmd-section{display:grid;grid-template-columns:280px 1fr;border-bottom:1px solid var(--rule)}
+.cmd-label-col{border-right:1px solid var(--rule);padding:64px 40px;display:flex;flex-direction:column;justify-content:space-between}
+.cmd-grid{display:flex;flex-direction:column}
+.cmd-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--rule);transition:background .15s}
+.cmd-row:last-child{border-bottom:none}
+.cmd-row:hover{background:rgba(255,255,255,.02)}
+.cmd-left{padding:20px 32px;border-right:1px solid var(--rule);font-size:12px;font-weight:700;color:var(--orange);display:flex;align-items:center;gap:8px}
+.cmd-left .p{color:var(--dim);font-weight:400}
+.cmd-right{padding:20px 32px;font-size:11px;line-height:1.6;color:var(--dim);display:flex;align-items:center}
+.cta-section{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--rule)}
+.cta-left{border-right:1px solid var(--rule);padding:80px 56px;display:flex;flex-direction:column;justify-content:center}
+.cta-title{font-family:var(--display);font-size:clamp(52px,7vw,96px);line-height:.9;letter-spacing:1px;margin-bottom:32px}
+.cta-title em{color:var(--orange);font-style:normal}
+.cta-body{font-size:12px;line-height:1.8;color:var(--dim);max-width:380px;margin-bottom:40px}
+.cta-buttons{display:flex;gap:0}
+.btn-main{padding:14px 28px;background:var(--orange);color:var(--ink);font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:3px;border:none;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-block}
+.btn-main:hover{background:#c43e10}
+.btn-ghost{padding:14px 28px;border:1px solid var(--rule);border-left:none;color:var(--dim);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:3px;transition:border-color .15s,color .15s}
+.btn-ghost:hover{border-color:var(--dim);color:var(--paper)}
+.cta-right{padding:80px 56px;display:flex;flex-direction:column;justify-content:center}
+.cta-code-block{border:1px solid var(--rule);margin-bottom:32px}
+.ccb-label{padding:10px 16px;font-size:9px;letter-spacing:3px;color:var(--dim);border-bottom:1px solid var(--rule);background:rgba(255,255,255,.02)}
+.ccb-lines{padding:20px 18px;font-size:12px;line-height:2}
+.ccb-comment{color:var(--dim)}
+footer{display:grid;grid-template-columns:280px 1fr 280px;border-top:1px solid var(--rule)}
+.foot-brand{border-right:1px solid var(--rule);padding:32px 40px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:800;letter-spacing:4px}
+.foot-links{padding:32px 40px;display:flex;align-items:center;gap:32px}
+.foot-links a{font-size:10px;letter-spacing:2px;color:var(--dim);transition:color .15s}
+.foot-links a:hover{color:var(--orange)}
+.foot-copy{border-left:1px solid var(--rule);padding:32px 40px;display:flex;align-items:center;font-size:10px;letter-spacing:1px;color:var(--dim);justify-content:flex-end}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media(max-width:900px){
+  .hero,.how-section,.terminal-section,.features-header,.cmd-section,.cta-section{grid-template-columns:1fr}
+  .hero-right,.nav-links{display:none}
+  .how-label-col,.term-info,.features-header-left,.cmd-label-col,.cta-left{border-right:none;border-bottom:1px solid var(--rule)}
+  .feat-grid{grid-template-columns:1fr}
+  .feat{border-right:none}
+  .cmd-row{grid-template-columns:1fr}
+  .cmd-left{border-right:none;border-bottom:1px solid var(--rule)}
+  nav{padding:0 20px}
+  footer{grid-template-columns:1fr}
+  .foot-brand,.foot-links{border:none;border-bottom:1px solid var(--rule)}
+  .foot-copy{border:none;justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="#" class="nav-logo">
+    <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><path d="M8 11 L31 32 L8 53" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 11 L45 32 L22 53" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.38"/><path d="M36 17 L54 32 L36 47" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/></svg>
+    SPAWN
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">HOW IT WORKS</a></li>
+    <li><a href="#features">FEATURES</a></li>
+    <li><a href="#commands">COMMANDS</a></li>
+  </ul>
+  <a href="https://github.com/glazlk/spawn" class="nav-gh">GITHUB ↗</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-wordmark">SP<span class="acc">A</span>WN</div>
+    <p class="hero-desc">spawn(task) → isolated env + AI agent → PR.<br>No config. No babysitting.</p>
+    <div class="hero-install">
+      <span class="install-label">INSTALL</span>
+      <span class="install-cmd">npx @spawn-dev/spawn</span>
+      <button class="install-copy" onclick="navigator.clipboard.writeText('npx @spawn-dev/spawn');this.textContent='COPIED';setTimeout(()=>this.textContent='COPY',2000)">COPY</button>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-stat-row">
+      <div class="hero-stat"><div class="stat-big">1</div><div class="stat-lbl">COMMAND TO START</div></div>
+      <div class="hero-stat"><div class="stat-big">∞</div><div class="stat-lbl">PARALLEL TASKS</div></div>
+      <div class="hero-stat"><div class="stat-big">0</div><div class="stat-lbl">ENV CONFLICTS</div></div>
+      <div class="hero-stat"><div class="stat-big">2</div><div class="stat-lbl">AI AGENTS INSIDE</div></div>
+    </div>
+    <div class="hero-manifesto">
+      <div class="manifesto-text">Environments are <em>mortal</em>.<br>Code is not.</div>
+    </div>
+  </div>
+</div>
+
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">DON'T CONFIGURE</span><span class="ticker-item">SPAWN</span><span class="ticker-item">ONE ISSUE</span><span class="ticker-item">ONE WORLD</span><span class="ticker-item">AI INSIDE</span><span class="ticker-item">PR AUTO-OPENS</span><span class="ticker-item">CONTAINER DIES</span><span class="ticker-item">YOU MOVE ON</span>
+    <span class="ticker-item">DON'T CONFIGURE</span><span class="ticker-item">SPAWN</span><span class="ticker-item">ONE ISSUE</span><span class="ticker-item">ONE WORLD</span><span class="ticker-item">AI INSIDE</span><span class="ticker-item">PR AUTO-OPENS</span><span class="ticker-item">CONTAINER DIES</span><span class="ticker-item">YOU MOVE ON</span>
+  </div>
+</div>
+
+<div class="how-section reveal" id="how">
+  <div class="how-label-col">
+    <div class="section-num">01</div>
+    <div><div class="section-heading">HOW IT<br>WORKS</div><p class="section-sub">Five steps. One direction. No setup ritual.</p></div>
+  </div>
+  <div class="steps-col">
+    <div class="step"><div class="step-n">AUTH</div><div class="step-body"><div class="step-title">CONNECT ONCE</div><p class="step-desc">Auth with GitHub and your AI agents. Credentials live in a private <code style="color:var(--orange)">~/.spawn</code> repo that syncs across machines. Runs exactly once.</p><span class="step-cmd">spawn auth github login</span></div></div>
+    <div class="step"><div class="step-n">CLONE</div><div class="step-body"><div class="step-title">POINT AT A TASK</div><p class="step-desc">Paste any GitHub issue, PR, or branch URL. Spawn creates an isolated Docker container with deps from the shared cache. Takes under 90 seconds.</p><span class="step-cmd">spawn clone github.com/org/repo/issues/42</span></div></div>
+    <div class="step"><div class="step-n">WORK</div><div class="step-body"><div class="step-title">AGENT TAKES OVER</div><p class="step-desc">In <code style="color:var(--orange)">--auto</code> mode Claude Code or Codex reads the issue, writes code, runs tests. You do other things. In <code style="color:var(--orange)">--ssh</code> mode you enter the container and work interactively.</p><span class="step-cmd">spawn clone ... --auto</span></div></div>
+    <div class="step"><div class="step-n">SHIP</div><div class="step-body"><div class="step-title">PR OPENS ITSELF</div><p class="step-desc">Agent commits, pushes, opens a pull request. Session log uploads to a private Gist and a link lands in the PR comment. Full audit trail.</p><span class="step-cmd">→ github.com/org/repo/pull/88</span></div></div>
+    <div class="step"><div class="step-n">DIE</div><div class="step-body"><div class="step-title">ENVIRONMENT SELF-DESTRUCTS</div><p class="step-desc">Container is destroyed. No leftover state. No drift. No "works on my machine." Next task gets a fresh spawn. That's the whole point.</p><span class="step-cmd">Container terminated. ✓</span></div></div>
+  </div>
+</div>
+
+<div class="terminal-section reveal">
+  <div class="term-info">
+    <div class="section-num">02</div>
+    <div class="section-heading">SEE IT.<br>BELIEVE IT.</div>
+    <p class="section-sub">From zero to open PR. Under 5 minutes. No Docker expertise required.</p>
+    <ul class="feature-list">
+      <li>One isolated container per GitHub issue or PR</li>
+      <li>Shared pnpm / npm / yarn cache across all containers</li>
+      <li>Claude Code and Codex pre-installed, AGENTS.md auto-loaded</li>
+      <li>Optional Playwright + Chromium browser sidecar</li>
+      <li>State repo keeps credentials across machines</li>
+      <li>Session logs backed up to private Gist on every push</li>
+    </ul>
+  </div>
+  <div class="term-wrap">
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="term-dots"><span class="td td-r"></span><span class="td td-y"></span><span class="td td-g"></span></div>
+        <span class="term-title">spawn — zsh — 80×24</span>
+        <span></span>
+      </div>
+      <div class="term-body">
+        <div><span class="p">$ </span><span class="c">spawn auth github login --web</span></div>
+        <div class="o ok">✓ Authenticated as skulidropek</div>
+        <div><span class="p">$ </span><span class="c">spawn auth claude login</span></div>
+        <div class="o ok">✓ Claude Code ready</div>
+        <div class="blank"></div>
+        <div><span class="p">$ </span><span class="c">spawn clone github.com/org/crm/issues/42 --auto</span></div>
+        <div class="o inf">→ Spawning issue-42...</div>
+        <div class="o">→ Image pull (cached)         <span style="color:var(--dim)">0.3s</span></div>
+        <div class="o">→ pnpm install (cache hit)    <span style="color:var(--dim)">1.1s</span></div>
+        <div class="o">→ Injecting Claude Code       <span style="color:var(--dim)">0.1s</span></div>
+        <div class="o inf">→ Agent reading issue #42...</div>
+        <div class="o inf">→ Writing implementation...</div>
+        <div class="o inf">→ Running test suite...   <span class="ok">pass</span></div>
+        <div class="o ok">✓ PR opened → github.com/org/crm/pull/87</div>
+        <div class="o ok">✓ Session log → gist.github.com/skulidropek/a3f...</div>
+        <div class="o">→ Container terminated</div>
+        <div class="blank"></div>
+        <div><span class="p">$ </span><span class="cursor-blink"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="features-section reveal" id="features">
+  <div class="features-header">
+    <div class="features-header-left"><div class="section-num">03</div><div class="section-heading">FEATURES</div></div>
+    <div class="features-header-right"><p>Built for how AI agents actually work. Not for how you think they should work.</p></div>
+  </div>
+  <div class="feat-grid">
+    <div class="feat"><div class="feat-title">PARALLEL ISOLATION</div><p class="feat-body">Run issue-42 and issue-43 simultaneously. Separate containers, separate agents, zero interference. Share nothing except the package cache.</p><div class="feat-tag">spawn swarm 42 43 44</div></div>
+    <div class="feat"><div class="feat-title">SHARED CREDENTIALS</div><p class="feat-body">One auth.json for all containers. No token rotation issues. Each project keeps its own session state while sharing the login.</p><div class="feat-tag">SPAWN_SHARE_AUTH=1</div></div>
+    <div class="feat"><div class="feat-title">TWO AI AGENTS</div><p class="feat-body">Claude Code and Codex pre-installed in every environment. AGENTS.md auto-loaded with issue context. They read the task. They know what to do.</p><div class="feat-tag">Claude Code + Codex</div></div>
+    <div class="feat"><div class="feat-title">SESSION BACKUP</div><p class="feat-body">On every push, AI session logs auto-upload to a private GitHub Gist. A link is posted to the PR comment. Full audit trail of what the agent did.</p><div class="feat-tag">Auto-gist on git push</div></div>
+    <div class="feat"><div class="feat-title">CLOUD STATE</div><p class="feat-body">Your ~/.spawn directory syncs to a private GitHub repo on auth. Switch machines. Restore everything. Never reconfigure. One command, same state.</p><div class="feat-tag">GitHub-backed state repo</div></div>
+    <div class="feat"><div class="feat-title">PLAYWRIGHT MCP</div><p class="feat-body">Optional Chromium sidecar. Claude Code gets full browser automation through MCP protocol. Agents that can see pages, click buttons, fill forms.</p><div class="feat-tag">--mcp-playwright</div></div>
+  </div>
+</div>
+
+<div class="cmd-section reveal" id="commands">
+  <div class="cmd-label-col">
+    <div class="section-num">04</div>
+    <div><div class="section-heading">THE API</div><p class="section-sub">The whole interface.<br>Fits in your head.</p></div>
+  </div>
+  <div class="cmd-grid">
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn auth github login</div><div class="cmd-right">Connect GitHub. Creates ~/.spawn state repo. Runs once.</div></div>
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn auth claude login</div><div class="cmd-right">Authorize Claude Code. Shared across all containers.</div></div>
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn clone &lt;url&gt;</div><div class="cmd-right">Spawn an isolated container for any GitHub issue, PR, or branch.</div></div>
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn clone &lt;url&gt; --auto</div><div class="cmd-right">Spawn, let the agent work, open PR, die. Zero babysitting.</div></div>
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn clone &lt;url&gt; --ssh</div><div class="cmd-right">Spawn and enter. Work interactively inside the container.</div></div>
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn open &lt;url&gt;</div><div class="cmd-right">Re-enter an existing environment. Runs up + tmux attach.</div></div>
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn list</div><div class="cmd-right">All live containers. What's running, what's done.</div></div>
+    <div class="cmd-row"><div class="cmd-left"><span class="p">$ </span>spawn mcp-playwright &lt;url&gt;</div><div class="cmd-right">Add Chromium sidecar for agents that need to browse.</div></div>
+  </div>
+</div>
+
+<div class="cta-section reveal">
+  <div class="cta-left">
+    <div class="cta-title">READY<br>TO <em>SPAWN</em>?</div>
+    <p class="cta-body">Install takes 30 seconds. First spawn takes under 2 minutes. After that you'll never set up a dev environment manually again.</p>
+    <div class="cta-buttons">
+      <a href="https://github.com/glazlk/spawn" class="btn-main">STAR ON GITHUB</a>
+      <a href="#how" class="btn-ghost">READ DOCS</a>
+    </div>
+  </div>
+  <div class="cta-right">
+    <div class="cta-code-block">
+      <div class="ccb-label">QUICKSTART — 3 COMMANDS</div>
+      <div class="ccb-lines">
+        <div class="ccb-comment"># 1. install &amp; auth (once)</div>
+        <div><span class="p">$ </span><span class="c">npx @spawn-dev/spawn auth github login</span></div>
+        <div><span class="p">$ </span><span class="c">npx @spawn-dev/spawn auth claude login</span></div>
+        <div class="blank"></div>
+        <div class="ccb-comment"># 2. point at a task</div>
+        <div><span class="p">$ </span><span class="c">spawn clone github.com/org/repo/issues/42 --auto</span></div>
+        <div class="blank"></div>
+        <div class="ccb-comment"># 3. check your PRs</div>
+        <div class="o ok">✓ PR opened. Agent session saved. Done.</div>
+      </div>
+    </div>
+    <p style="font-size:11px;line-height:1.7;color:var(--dim)">Requires Docker. Works on macOS, Linux, and WSL2.<br>MIT license. No telemetry. No accounts required.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-brand">
+    <svg width="18" height="18" viewBox="0 0 64 64" fill="none"><path d="M8 11 L31 32 L8 53" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 11 L45 32 L22 53" stroke="#E8521A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.38"/></svg>
+    SPAWN
+  </div>
+  <div class="foot-links"><a href="https://github.com/glazlk/spawn">GITHUB</a><a href="#">NPM</a><a href="#">DOCS</a><a href="#">CHANGELOG</a></div>
+  <div class="foot-copy">spawn(task) → PR. always.</div>
+</footer>
+
+<script>
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

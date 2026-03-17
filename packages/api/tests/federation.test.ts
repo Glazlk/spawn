@@ -54,7 +54,7 @@ describe("federation service", () => {
       const context = yield* _(
         makeFederationContext({
           publicOrigin: "https://social.provercoder.ai",
-          actorUsername: "docker-git"
+          actorUsername: "spawn"
         })
       )
 

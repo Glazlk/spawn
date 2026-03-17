@@ -1,6 +1,6 @@
-# @effect-template/api
+# @spawn-dev/api
 
-HTTP API for docker-git orchestration (projects, agents, logs/events, federation).
+HTTP API for spawn orchestration (projects, agents, logs/events, federation).
 
 ## UI wrapper
 
@@ -33,12 +33,12 @@ Default port mapping:
 
 Optional env:
 
-- `DOCKER_GIT_API_BIND_HOST` (default: `127.0.0.1`)
-- `DOCKER_GIT_API_PORT` (default: `3334`)
-- `DOCKER_GIT_PROJECTS_ROOT_HOST` (host path with docker-git projects, default: `/home/dev/.docker-git`)
-- `DOCKER_GIT_PROJECTS_ROOT` (container path, default: `/home/dev/.docker-git`)
-- `DOCKER_GIT_FEDERATION_PUBLIC_ORIGIN` (optional public ActivityPub origin)
-- `DOCKER_GIT_FEDERATION_ACTOR` (default: `docker-git`)
+- `SPAWN_API_BIND_HOST` (default: `127.0.0.1`)
+- `SPAWN_API_PORT` (default: `3334`)
+- `SPAWN_PROJECTS_ROOT_HOST` (host path with spawn projects, default: `/home/dev/.spawn`)
+- `SPAWN_PROJECTS_ROOT` (container path, default: `/home/dev/.spawn`)
+- `SPAWN_FEDERATION_PUBLIC_ORIGIN` (optional public ActivityPub origin)
+- `SPAWN_FEDERATION_ACTOR` (default: `spawn`)
 
 ## Endpoints
 

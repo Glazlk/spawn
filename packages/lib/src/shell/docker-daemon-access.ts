@@ -75,7 +75,7 @@ const runDockerInfoCommand = (
 
 // CHANGE: classify docker daemon access failure into deterministic typed reasons
 // WHY: allow callers to render actionable recovery guidance for socket permission issues
-// QUOTE(ТЗ): "docker-git handles Docker socket permission problems predictably"
+// QUOTE(ТЗ): "spawn handles Docker socket permission problems predictably"
 // REF: issue-11
 // SOURCE: n/a
 // FORMAT THEOREM: ∀m: classify(m) ∈ {"PermissionDenied","DaemonUnavailable"}

@@ -1,10 +1,10 @@
 import type { TemplateConfig } from "../domain.js"
 import { renderClaudeGlobalPromptSetup, renderClaudeWrapperSetup } from "./claude-extra-config.js"
 
-const claudeAuthRootContainerPath = (sshUser: string): string => `/home/${sshUser}/.docker-git/.orch/auth/claude`
+const claudeAuthRootContainerPath = (sshUser: string): string => `/home/${sshUser}/.spawn/.orch/auth/claude`
 
 const claudeAuthConfigTemplate = String
-  .raw`# Claude Code: expose CLAUDE_CONFIG_DIR for SSH sessions (OAuth cache lives under ~/.docker-git/.orch/auth/claude)
+  .raw`# Claude Code: expose CLAUDE_CONFIG_DIR for SSH sessions (OAuth cache lives under ~/.spawn/.orch/auth/claude)
 CLAUDE_LABEL_RAW="$CLAUDE_AUTH_LABEL"
 if [[ -z "$CLAUDE_LABEL_RAW" ]]; then
   CLAUDE_LABEL_RAW="default"
@@ -39,15 +39,15 @@ CLAUDE_TOKEN_FILE="$CLAUDE_CONFIG_DIR/.oauth-token"
 CLAUDE_CREDENTIALS_FILE="$CLAUDE_CONFIG_DIR/.credentials.json"
 CLAUDE_NESTED_CREDENTIALS_FILE="$CLAUDE_CONFIG_DIR/.claude/.credentials.json"
 
-docker_git_prepare_claude_auth_mode() {
+spawn_prepare_claude_auth_mode() {
   if [[ -s "$CLAUDE_TOKEN_FILE" ]]; then
     rm -f "$CLAUDE_CREDENTIALS_FILE" "$CLAUDE_NESTED_CREDENTIALS_FILE" "$CLAUDE_HOME_DIR/.credentials.json" || true
   fi
 }
 
-docker_git_prepare_claude_auth_mode
+spawn_prepare_claude_auth_mode
 
-docker_git_link_claude_file() {
+spawn_link_claude_file() {
   local source_path="$1"
   local link_path="$2"
 
@@ -63,22 +63,22 @@ docker_git_link_claude_file() {
   ln -sfn "$source_path" "$link_path" || true
 }
 
-docker_git_link_claude_home_file() {
+spawn_link_claude_home_file() {
   local relative_path="$1"
   local source_path="$CLAUDE_CONFIG_DIR/$relative_path"
   local link_path="$CLAUDE_HOME_DIR/$relative_path"
-  docker_git_link_claude_file "$source_path" "$link_path"
+  spawn_link_claude_file "$source_path" "$link_path"
 }
 
-docker_git_link_claude_home_file ".oauth-token"
-docker_git_link_claude_home_file ".config.json"
-docker_git_link_claude_home_file ".claude.json"
+spawn_link_claude_home_file ".oauth-token"
+spawn_link_claude_home_file ".config.json"
+spawn_link_claude_home_file ".claude.json"
 if [[ ! -s "$CLAUDE_TOKEN_FILE" ]]; then
-  docker_git_link_claude_home_file ".credentials.json"
+  spawn_link_claude_home_file ".credentials.json"
 fi
-docker_git_link_claude_file "$CLAUDE_CONFIG_DIR/.claude.json" "$CLAUDE_HOME_JSON"
+spawn_link_claude_file "$CLAUDE_CONFIG_DIR/.claude.json" "$CLAUDE_HOME_JSON"
 
-docker_git_refresh_claude_oauth_token() {
+spawn_refresh_claude_oauth_token() {
   local token=""
   if [[ -f "$CLAUDE_TOKEN_FILE" ]]; then
     token="$(tr -d '\r\n' < "$CLAUDE_TOKEN_FILE")"
@@ -90,7 +90,7 @@ docker_git_refresh_claude_oauth_token() {
   fi
 }
 
-docker_git_refresh_claude_oauth_token`
+spawn_refresh_claude_oauth_token`
 
 const renderClaudeAuthConfig = (config: TemplateConfig): string =>
   claudeAuthConfigTemplate
@@ -100,7 +100,7 @@ const renderClaudeAuthConfig = (config: TemplateConfig): string =>
 
 const renderClaudeCliInstall = (): string =>
   String.raw`# Claude Code: ensure CLI command exists (non-blocking startup self-heal)
-docker_git_ensure_claude_cli() {
+spawn_ensure_claude_cli() {
   if command -v claude >/dev/null 2>&1; then
     return 0
   fi
@@ -112,7 +112,7 @@ docker_git_ensure_claude_cli() {
   NPM_ROOT="$(npm root -g 2>/dev/null || true)"
   CLAUDE_CLI_JS="$NPM_ROOT/@anthropic-ai/claude-code/cli.js"
   if [[ -z "$NPM_ROOT" || ! -f "$CLAUDE_CLI_JS" ]]; then
-    echo "docker-git: claude cli.js not found under npm global root; skip shim restore" >&2
+    echo "spawn: claude cli.js not found under npm global root; skip shim restore" >&2
     return 0
   fi
 
@@ -139,12 +139,12 @@ EOF
   ln -sf /usr/local/bin/claude /usr/bin/claude || true
 }
 
-docker_git_ensure_claude_cli`
+spawn_ensure_claude_cli`
 
 const renderClaudePermissionSettingsConfig = (): string =>
-  String.raw`# Claude Code: keep permission settings in sync with docker-git defaults
+  String.raw`# Claude Code: keep permission settings in sync with spawn defaults
 CLAUDE_PERMISSION_SETTINGS_FILE="$CLAUDE_CONFIG_DIR/settings.json"
-docker_git_sync_claude_permissions() {
+spawn_sync_claude_permissions() {
   CLAUDE_PERMISSION_SETTINGS_FILE="$CLAUDE_PERMISSION_SETTINGS_FILE" node - <<'NODE'
 const fs = require("node:fs")
 const path = require("node:path")
@@ -184,14 +184,14 @@ fs.writeFileSync(settingsPath, JSON.stringify(nextSettings, null, 2) + "\n", { m
 NODE
 }
 
-docker_git_sync_claude_permissions
+spawn_sync_claude_permissions
 chmod 0600 "$CLAUDE_PERMISSION_SETTINGS_FILE" 2>/dev/null || true
 chown 1000:1000 "$CLAUDE_PERMISSION_SETTINGS_FILE" 2>/dev/null || true`
 
 const renderClaudeMcpPlaywrightConfig = (): string =>
   String.raw`# Claude Code: keep Playwright MCP config in sync with container settings
 CLAUDE_SETTINGS_FILE="${"$"}{CLAUDE_HOME_JSON:-$CLAUDE_CONFIG_DIR/.claude.json}"
-docker_git_sync_claude_playwright_mcp() {
+spawn_sync_claude_playwright_mcp() {
   CLAUDE_SETTINGS_FILE="$CLAUDE_SETTINGS_FILE" MCP_PLAYWRIGHT_ENABLE="$MCP_PLAYWRIGHT_ENABLE" node - <<'NODE'
 const fs = require("node:fs")
 const path = require("node:path")
@@ -218,7 +218,7 @@ const nextServers = { ...currentServers }
 if (enablePlaywright) {
   nextServers.playwright = {
     type: "stdio",
-    command: "docker-git-playwright-mcp",
+    command: "spawn-playwright-mcp",
     args: [],
     env: {}
   }
@@ -242,7 +242,7 @@ fs.writeFileSync(settingsPath, JSON.stringify(nextSettings, null, 2) + "\n", { m
 NODE
 }
 
-docker_git_sync_claude_playwright_mcp
+spawn_sync_claude_playwright_mcp
 chown 1000:1000 "$CLAUDE_SETTINGS_FILE" 2>/dev/null || true`
 
 const renderClaudeProfileSetup = (): string =>
@@ -260,10 +260,10 @@ fi
 EOF
 chmod 0644 "$CLAUDE_PROFILE" || true
 
-docker_git_upsert_ssh_env "CLAUDE_AUTH_LABEL" "$CLAUDE_AUTH_LABEL"
-docker_git_upsert_ssh_env "CLAUDE_CONFIG_DIR" "$CLAUDE_CONFIG_DIR"
-docker_git_upsert_ssh_env "CLAUDE_CODE_OAUTH_TOKEN" "${"$"}{CLAUDE_CODE_OAUTH_TOKEN:-}"
-docker_git_upsert_ssh_env "CLAUDE_AUTO_SYSTEM_PROMPT" "$CLAUDE_AUTO_SYSTEM_PROMPT"`
+spawn_upsert_ssh_env "CLAUDE_AUTH_LABEL" "$CLAUDE_AUTH_LABEL"
+spawn_upsert_ssh_env "CLAUDE_CONFIG_DIR" "$CLAUDE_CONFIG_DIR"
+spawn_upsert_ssh_env "CLAUDE_CODE_OAUTH_TOKEN" "${"$"}{CLAUDE_CODE_OAUTH_TOKEN:-}"
+spawn_upsert_ssh_env "CLAUDE_AUTO_SYSTEM_PROMPT" "$CLAUDE_AUTO_SYSTEM_PROMPT"`
 
 export const renderEntrypointClaudeConfig = (config: TemplateConfig): string =>
   [

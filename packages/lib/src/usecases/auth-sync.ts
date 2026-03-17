@@ -117,7 +117,7 @@ const copyFileIfNeeded = (
 // FORMAT THEOREM: forall p: writable(config(p)) -> config(p)=defaults; permission_denied(config(p)) -> warning_logged
 // PURITY: SHELL
 // EFFECT: Effect<void, PlatformError, FileSystem | Path>
-// INVARIANT: rewrites only docker-git-managed configs to keep defaults in sync, permission-denied writes are skipped
+// INVARIANT: rewrites only spawn-managed configs to keep defaults in sync, permission-denied writes are skipped
 // COMPLEXITY: O(n) where n = |config|
 export const ensureCodexConfigFile = (
   baseDir: string,

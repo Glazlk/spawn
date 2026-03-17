@@ -63,7 +63,7 @@ const createFork = (
   ])
 
 // CHANGE: resolve a fork URL for GitHub repos when a token is available
-// WHY: allow docker-git clone to auto-fork issue URLs for push access
+// WHY: allow spawn clone to auto-fork issue URLs for push access
 // QUOTE(ТЗ): "Сразу на issues и он бы делал форк репы если это надо"
 // REF: user-request-2026-02-05-issues-fork
 // SOURCE: n/a

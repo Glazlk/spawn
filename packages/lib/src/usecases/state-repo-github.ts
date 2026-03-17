@@ -11,12 +11,12 @@ import { resolvePathFromCwd } from "./path-helpers.js"
 import { withFsPathContext } from "./runtime.js"
 import { stateInit } from "./state-repo.js"
 
-// CHANGE: ensure .docker-git repository exists on GitHub after auth
+// CHANGE: ensure .spawn repository exists on GitHub after auth
 // WHY: on auth, automatically create or clone the state repo for synchronized work
-// QUOTE(ТЗ): "как только вызываем docker-git auth github то происходит синхронизация. ОН либо создаёт репозиторий .docker-git либо его клонирует к нам"
+// QUOTE(ТЗ): "как только вызываем spawn auth github то происходит синхронизация. ОН либо создаёт репозиторий .spawn либо его клонирует к нам"
 // REF: issue-141
-// SOURCE: https://github.com/skulidropek/.docker-git
-// FORMAT THEOREM: ∀token: login(token) → ∃repo: cloned(repo, ~/.docker-git)
+// SOURCE: https://github.com/skulidropek/.spawn
+// FORMAT THEOREM: ∀token: login(token) → ∃repo: cloned(repo, ~/.spawn)
 // PURITY: SHELL
 // EFFECT: Effect<void, never, FileSystem | Path | CommandExecutor>
 // INVARIANT: failures are logged but do not abort the auth flow
@@ -24,7 +24,7 @@ import { stateInit } from "./state-repo.js"
 
 type GithubStateRepoRuntime = FileSystem.FileSystem | Path.Path | CommandExecutor.CommandExecutor
 
-const dotDockerGitRepoName = ".docker-git"
+const dotDockerGitRepoName = ".spawn"
 const defaultStateRef = "main"
 
 // PURITY: SHELL
@@ -78,13 +78,13 @@ const createStateRepo = (
   ])
 
 /**
- * Ensures the .docker-git state repository exists on GitHub and is initialised locally.
+ * Ensures the .spawn state repository exists on GitHub and is initialised locally.
  *
  * On GitHub auth, immediately:
  * 1. Resolve the authenticated user's login via the GitHub API
- * 2. Check whether `<login>/.docker-git` exists on GitHub
+ * 2. Check whether `<login>/.spawn` exists on GitHub
  * 3. If missing, create the repository (public, auto-initialised with a README)
- * 4. Initialise the local `~/.docker-git` directory as a clone of that repository
+ * 4. Initialise the local `~/.spawn` directory as a clone of that repository
  *
  * All failures are swallowed and logged as warnings so they never abort the auth
  * flow itself.
@@ -94,9 +94,9 @@ const createStateRepo = (
  *
  * @pure false
  * @effect FileSystem, CommandExecutor (Docker gh CLI, git)
- * @invariant ∀token ∈ ValidTokens: ensureStateDotDockerGitRepo(token) → cloned(~/.docker-git) ∨ warned
+ * @invariant ∀token ∈ ValidTokens: ensureStateDotDockerGitRepo(token) → cloned(~/.spawn) ∨ warned
  * @precondition token.length > 0
- * @postcondition ~/.docker-git is a git repo with origin pointing to github.com/<login>/.docker-git
+ * @postcondition ~/.spawn is a git repo with origin pointing to github.com/<login>/.spawn
  * @complexity O(1) API calls
  * @throws Never - all errors are caught and logged
  */
@@ -113,12 +113,12 @@ export const ensureStateDotDockerGitRepo = (
       let cloneUrl = yield* _(getRepoCloneUrl(cwd, ghRoot, token, login))
 
       if (cloneUrl === null) {
-        yield* _(Effect.log(`Creating .docker-git repository for ${login}...`))
+        yield* _(Effect.log(`Creating .spawn repository for ${login}...`))
         cloneUrl = yield* _(createStateRepo(cwd, ghRoot, token))
       }
 
       if (cloneUrl === null) {
-        yield* _(Effect.logWarning(`Could not resolve or create .docker-git repository for ${login}`))
+        yield* _(Effect.logWarning(`Could not resolve or create .spawn repository for ${login}`))
         return
       }
 

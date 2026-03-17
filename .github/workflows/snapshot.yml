@@ -11,7 +11,7 @@ permissions:
 jobs:
   snapshot:
     name: Snapshot
-    if: github.repository_owner == 'ProverCoderAI'
+    if: github.repository_owner == 'konard'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

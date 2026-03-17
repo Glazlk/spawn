@@ -10,7 +10,7 @@ import { readProjectConfig } from "../shell/config.js"
 import { runDockerInspectContainerIp } from "../shell/docker.js"
 import type { ConfigDecodeError, ConfigNotFoundError } from "../shell/errors.js"
 import { resolveBaseDir } from "../shell/paths.js"
-import { findDockerGitConfigPaths } from "./docker-git-config-search.js"
+import { findDockerGitConfigPaths } from "./spawn-config-search.js"
 import { renderError } from "./errors.js"
 import { defaultProjectsRoot, formatConnectionInfo } from "./menu-helpers.js"
 import { findSshPrivateKey, resolveAuthorizedKeysPath, resolvePathFromCwd } from "./path-helpers.js"
@@ -291,7 +291,7 @@ export const loadProjectIndex = (): Effect.Effect<
     const projectsRoot = defaultProjectsRoot(process.cwd())
     const configPaths = yield* _(findProjectConfigPaths(projectsRoot))
     if (configPaths.length === 0) {
-      yield* _(Effect.log(`No docker-git projects found in ${projectsRoot}`))
+      yield* _(Effect.log(`No spawn projects found in ${projectsRoot}`))
       return null
     }
     return { projectsRoot, configPaths }

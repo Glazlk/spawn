@@ -39,7 +39,7 @@ if [[ "$CODEX_SHARE_AUTH" == "1" ]]; then
     rm -f "$AUTH_FILE" || true
   fi
   ln -sf "$SHARED_AUTH_FILE" "$AUTH_FILE"
-  docker_git_upsert_ssh_env "CODEX_AUTH_LABEL" "$CODEX_AUTH_LABEL"
+  spawn_upsert_ssh_env "CODEX_AUTH_LABEL" "$CODEX_AUTH_LABEL"
 fi`
 
 const entrypointMcpPlaywrightTemplate = String.raw`# Optional: configure Playwright MCP for Codex (browser automation)
@@ -47,12 +47,12 @@ CODEX_CONFIG_FILE="__CODEX_HOME__/config.toml"
 
 # Keep config.toml consistent with the container build.
 # If Playwright MCP is disabled for this container, remove the block so Codex
-# doesn't try (and fail) to spawn docker-git-playwright-mcp.
+# doesn't try (and fail) to spawn spawn-playwright-mcp.
 if [[ "$MCP_PLAYWRIGHT_ENABLE" != "1" ]]; then
   if [[ -f "$CODEX_CONFIG_FILE" ]] && grep -q "^\[mcp_servers\.playwright" "$CODEX_CONFIG_FILE" 2>/dev/null; then
     awk '
       BEGIN { skip=0 }
-      /^# docker-git: Playwright MCP/ { next }
+      /^# spawn: Playwright MCP/ { next }
       /^\[mcp_servers[.]playwright([.]|\])/ { skip=1; next }
       skip==1 && /^\[/ { skip=0 }
       skip==0 { print }
@@ -63,7 +63,7 @@ else
   if [[ ! -f "$CODEX_CONFIG_FILE" ]]; then
     mkdir -p "$(dirname "$CODEX_CONFIG_FILE")" || true
     cat <<'EOF' > "$CODEX_CONFIG_FILE"
-# docker-git codex config
+# spawn codex config
 model = "gpt-5.4"
 model_context_window = 1050000
 model_auto_compact_token_limit = 945000
@@ -88,11 +88,11 @@ EOF
     MCP_PLAYWRIGHT_CDP_ENDPOINT="http://__SERVICE_NAME__-browser:9223"
   fi
 
-  # Replace the docker-git Playwright block to allow upgrades via --force without manual edits.
+  # Replace the spawn Playwright block to allow upgrades via --force without manual edits.
   if grep -q "^\[mcp_servers\.playwright" "$CODEX_CONFIG_FILE" 2>/dev/null; then
     awk '
       BEGIN { skip=0 }
-      /^# docker-git: Playwright MCP/ { next }
+      /^# spawn: Playwright MCP/ { next }
       /^\[mcp_servers[.]playwright([.]|\])/ { skip=1; next }
       skip==1 && /^\[/ { skip=0 }
       skip==0 { print }
@@ -102,9 +102,9 @@ EOF
 
   cat <<EOF >> "$CODEX_CONFIG_FILE"
 
-# docker-git: Playwright MCP (connects to Chromium via CDP)
+# spawn: Playwright MCP (connects to Chromium via CDP)
 [mcp_servers.playwright]
-command = "docker-git-playwright-mcp"
+command = "spawn-playwright-mcp"
 args = []
 EOF
 fi`
@@ -118,7 +118,7 @@ const entrypointCodexResumeHintTemplate = `# Ensure codex resume hint is shown f
 CODEX_HINT_PATH="/etc/profile.d/zz-codex-resume.sh"
 if [[ ! -s "$CODEX_HINT_PATH" ]]; then
   cat <<'EOF' > "$CODEX_HINT_PATH"
-docker_git_workspace_context_line() {
+spawn_workspace_context_line() {
   REPO_REF_VALUE="\${REPO_REF:-__REPO_REF_DEFAULT__}"
   REPO_URL_VALUE="\${REPO_URL:-__REPO_URL_DEFAULT__}"
 
@@ -163,11 +163,11 @@ docker_git_workspace_context_line() {
   fi
 }
 
-docker_git_print_codex_resume_hint() {
+spawn_print_codex_resume_hint() {
   if [ -z "\${CODEX_RESUME_HINT_SHOWN-}" ]; then
-    DOCKER_GIT_CONTEXT_LINE="$(docker_git_workspace_context_line)"
-    if [[ -n "$DOCKER_GIT_CONTEXT_LINE" ]]; then
-      echo "$DOCKER_GIT_CONTEXT_LINE"
+    SPAWN_CONTEXT_LINE="$(spawn_workspace_context_line)"
+    if [[ -n "$SPAWN_CONTEXT_LINE" ]]; then
+      echo "$SPAWN_CONTEXT_LINE"
     fi
     echo "Старые сессии можно запустить с помощью codex resume или codex resume <id>, если знаешь айди."
     export CODEX_RESUME_HINT_SHOWN=1
@@ -177,13 +177,13 @@ docker_git_print_codex_resume_hint() {
 if [ -n "$BASH_VERSION" ]; then
   case "$-" in
     *i*)
-      docker_git_print_codex_resume_hint
+      spawn_print_codex_resume_hint
       ;;
   esac
 fi
 if [ -n "$ZSH_VERSION" ]; then
   if [[ "$-" == *i* ]]; then
-    docker_git_print_codex_resume_hint
+    spawn_print_codex_resume_hint
   fi
 fi
 EOF
@@ -248,8 +248,8 @@ elif [[ "$REPO_REF" == refs/pull/*/head ]]; then
     WORKSPACE_INFO_LINE="Контекст workspace: pull request ($REPO_REF)"
   fi
 fi
-MANAGED_START="<!-- docker-git:managed:start -->"
-MANAGED_END="<!-- docker-git:managed:end -->"
+MANAGED_START="<!-- spawn:managed:start -->"
+MANAGED_END="<!-- spawn:managed:end -->"
 if [[ ! -f "$AGENTS_PATH" ]]; then
   MANAGED_BLOCK="$(cat <<EOF
 $MANAGED_START

@@ -19,7 +19,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-auth-sync-"
+          prefix: "spawn-auth-sync-"
         })
       )
       return yield* _(use(tempDir))
@@ -29,7 +29,7 @@ const withTempDir = <A, E, R>(
 describe("syncGithubAuthKeys", () => {
   it("updates github token keys from source and preserves non-auth target keys", () => {
     const source = [
-      "# docker-git env",
+      "# spawn env",
       "# KEY=value",
       "GITHUB_TOKEN=token_new",
       "GITHUB_TOKEN__WORK=token_work",
@@ -37,7 +37,7 @@ describe("syncGithubAuthKeys", () => {
       ""
     ].join("\n")
     const target = [
-      "# docker-git env",
+      "# spawn env",
       "# KEY=value",
       "GITHUB_TOKEN=token_old",
       "GH_TOKEN=legacy_old",
@@ -55,13 +55,13 @@ describe("syncGithubAuthKeys", () => {
 
   it("keeps target unchanged when source has no github token keys", () => {
     const source = [
-      "# docker-git env",
+      "# spawn env",
       "# KEY=value",
       "UNRELATED=1",
       ""
     ].join("\n")
     const target = [
-      "# docker-git env",
+      "# spawn env",
       "# KEY=value",
       "GITHUB_TOKEN=token_old",
       "CUSTOM_FLAG=1",
@@ -100,7 +100,7 @@ describe("syncGithubAuthKeys", () => {
         const codexDir = path.join(root, ".orch", "auth", "codex")
         const configPath = path.join(codexDir, "config.toml")
         const legacyManagedConfig = [
-          "# docker-git codex config",
+          "# spawn codex config",
           "model = \"gpt-5.3-codex\"",
           "model_reasoning_effort = \"xhigh\"",
           "personality = \"pragmatic\"",
@@ -138,7 +138,7 @@ describe("syncGithubAuthKeys", () => {
         const codexDir = path.join(root, ".orch", "auth", "codex")
         const configPath = path.join(codexDir, "config.toml")
         const readOnlyConfig = [
-          "# docker-git codex config",
+          "# spawn codex config",
           "model = \"gpt-5\"",
           ""
         ].join("\n")
@@ -154,7 +154,7 @@ describe("syncGithubAuthKeys", () => {
       })
     ).pipe(Effect.provide(NodeContext.layer)))
 
-  it.effect("migrates legacy claude auth directory into docker-git root", () =>
+  it.effect("migrates legacy claude auth directory into spawn root", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
@@ -168,17 +168,17 @@ describe("syncGithubAuthKeys", () => {
 
         yield* _(
           migrateLegacyOrchLayout(root, {
-            envGlobalPath: ".docker-git/.orch/env/global.env",
+            envGlobalPath: ".spawn/.orch/env/global.env",
             envProjectPath: ".orch/env/project.env",
-            codexAuthPath: ".docker-git/.orch/auth/codex",
-            ghAuthPath: ".docker-git/.orch/auth/gh",
-            claudeAuthPath: ".docker-git/.orch/auth/claude"
+            codexAuthPath: ".spawn/.orch/auth/codex",
+            ghAuthPath: ".spawn/.orch/auth/gh",
+            claudeAuthPath: ".spawn/.orch/auth/claude"
           })
         )
 
         const migratedTokenPath = path.join(
           root,
-          ".docker-git",
+          ".spawn",
           ".orch",
           "auth",
           "claude",
@@ -190,7 +190,7 @@ describe("syncGithubAuthKeys", () => {
       })
     ).pipe(Effect.provide(NodeContext.layer)))
 
-  it.effect("seeds Claude auth from host home into docker-git default account", () =>
+  it.effect("seeds Claude auth from host home into spawn default account", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
@@ -243,12 +243,12 @@ describe("syncGithubAuthKeys", () => {
           process.env["HOME"] = hostHome
         }))
 
-        yield* _(ensureClaudeAuthSeedFromHome(root, ".docker-git/.orch/auth/claude"))
+        yield* _(ensureClaudeAuthSeedFromHome(root, ".spawn/.orch/auth/claude"))
 
-        const seededClaudeJson = path.join(root, ".docker-git", ".orch", "auth", "claude", "default", ".claude.json")
+        const seededClaudeJson = path.join(root, ".spawn", ".orch", "auth", "claude", "default", ".claude.json")
         const seededCredentials = path.join(
           root,
-          ".docker-git",
+          ".spawn",
           ".orch",
           "auth",
           "claude",
@@ -274,7 +274,7 @@ describe("syncGithubAuthKeys", () => {
         const hostCredentialsJson = path.join(hostClaudeDir, ".credentials.json")
         const targetAccountDir = path.join(
           root,
-          ".docker-git",
+          ".spawn",
           ".orch",
           "auth",
           "claude",
@@ -328,7 +328,7 @@ describe("syncGithubAuthKeys", () => {
           process.env["HOME"] = hostHome
         }))
 
-        yield* _(ensureClaudeAuthSeedFromHome(root, ".docker-git/.orch/auth/claude"))
+        yield* _(ensureClaudeAuthSeedFromHome(root, ".spawn/.orch/auth/claude"))
 
         const hasSeededCredentials = yield* _(fs.exists(targetCredentials))
         expect(hasSeededCredentials).toBe(false)

@@ -36,13 +36,13 @@ const runDockerGitCommand = (
     const path = yield* _(Path.Path)
     const workspaceRoot = process.cwd()
     const appRoot = path.join(workspaceRoot, "packages", "app")
-    const dockerGitCli = path.join(appRoot, "dist", "src", "docker-git", "main.js")
-    const buildLabel = `pnpm -C ${appRoot} build:docker-git`
+    const dockerGitCli = path.join(appRoot, "dist", "src", "spawn", "main.js")
+    const buildLabel = `pnpm -C ${appRoot} build:spawn`
     const runLabel = `node ${dockerGitCli} ${commandName}`
 
     yield* _(
       runCommandWithExitCodes(
-        { cwd: workspaceRoot, command: "pnpm", args: ["-C", appRoot, "build:docker-git"] },
+        { cwd: workspaceRoot, command: "pnpm", args: ["-C", appRoot, "build:spawn"] },
         [successExitCode],
         (exitCode) => new CommandFailedError({ command: buildLabel, exitCode })
       )
@@ -56,12 +56,12 @@ const runDockerGitCommand = (
     )
   })
 
-// CHANGE: run docker-git clone by building and invoking its CLI
-// WHY: reuse docker-git without mutating its codebase
+// CHANGE: run spawn clone by building and invoking its CLI
+// WHY: reuse spawn without mutating its codebase
 // QUOTE(ТЗ): "docker git мы никак не изменяем"
 // REF: user-request-2026-01-27
 // SOURCE: n/a
-// FORMAT THEOREM: forall args: build && run(args) -> docker_git_invoked(args)
+// FORMAT THEOREM: forall args: build && run(args) -> spawn_invoked(args)
 // PURITY: SHELL
 // EFFECT: Effect<void, CommandFailedError | PlatformError, CommandExecutor | Path>
 // INVARIANT: build runs before clone command
@@ -74,12 +74,12 @@ export const runDockerGitClone = (
   CommandExecutor.CommandExecutor | Path.Path
 > => runDockerGitCommand("clone", args)
 
-// CHANGE: run docker-git open by building and invoking its CLI
+// CHANGE: run spawn open by building and invoking its CLI
 // WHY: mirror clone shortcut behavior for opening an existing repo workspace
 // QUOTE(ТЗ): "Добавить команду open. ... Просто открывает существующий по ссылке"
 // REF: user-request-2026-02-20-open-command
 // SOURCE: n/a
-// FORMAT THEOREM: forall args: build && run(args) -> docker_git_open_invoked(args)
+// FORMAT THEOREM: forall args: build && run(args) -> spawn_open_invoked(args)
 // PURITY: SHELL
 // EFFECT: Effect<void, CommandFailedError | PlatformError, CommandExecutor | Path>
 // INVARIANT: build runs before open command

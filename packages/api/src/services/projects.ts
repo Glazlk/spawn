@@ -1,9 +1,9 @@
-import { buildCreateCommand, createProject, formatParseError, listProjectItems, readProjectConfig } from "@effect-template/lib"
-import { runCommandCapture } from "@effect-template/lib/shell/command-runner"
-import { CommandFailedError } from "@effect-template/lib/shell/errors"
-import { deleteDockerGitProject } from "@effect-template/lib/usecases/projects"
-import type { RawOptions } from "@effect-template/lib/core/command-options"
-import type { ProjectItem } from "@effect-template/lib/usecases/projects"
+import { buildCreateCommand, createProject, formatParseError, listProjectItems, readProjectConfig } from "@spawn-dev/lib"
+import { runCommandCapture } from "@spawn-dev/lib/shell/command-runner"
+import { CommandFailedError } from "@spawn-dev/lib/shell/errors"
+import { deleteSpawnProject } from "@spawn-dev/lib/usecases/projects"
+import type { RawOptions } from "@spawn-dev/lib/core/command-options"
+import type { ProjectItem } from "@spawn-dev/lib/usecases/projects"
 import { Effect, Either } from "effect"
 
 import type { CreateProjectRequest, ProjectDetails, ProjectStatus, ProjectSummary } from "../api/contracts.js"
@@ -163,7 +163,7 @@ export const getProject = (
     return toProjectDetails(project, summary)
   })
 
-// CHANGE: create a docker-git project exclusively through typed API input.
+// CHANGE: create a spawn project exclusively through typed API input.
 // WHY: issue #84 requires end-to-end project lifecycle without CLI interaction.
 // QUOTE(ТЗ): "Мне надо иметь возможность управлять полностью проектом с помощью API"
 // REF: issue-84-project-create
@@ -262,7 +262,7 @@ export const deleteProjectById = (
 ) =>
   Effect.gen(function*(_) {
     const project = yield* _(findProjectById(projectId))
-    yield* _(deleteDockerGitProject(project))
+    yield* _(deleteSpawnProject(project))
     yield* _(
       Effect.sync(() => {
         emitProjectEvent(projectId, "project.deleted", { projectId })

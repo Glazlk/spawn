@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Shared helpers for docker-git E2E scripts (non-interactive).
+# Shared helpers for spawn E2E scripts (non-interactive).
 
 dg_has_docker_access() {
   docker ps >/dev/null 2>&1
@@ -53,7 +53,7 @@ dg_write_docker_host_file() {
     bash -lc "cat > \"/mnt/$host_name\""
 }
 
-# Ensure the calling script can run `docker` (and therefore docker-git) in a
+# Ensure the calling script can run `docker` (and therefore spawn) in a
 # non-interactive environment. If the current user lacks access to the docker
 # socket, but `sudo -n docker` works, install a `docker` wrapper earlier in PATH.
 dg_ensure_docker() {

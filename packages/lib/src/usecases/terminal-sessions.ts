@@ -15,7 +15,7 @@ type SessionsError = CommandFailedError | ConfigNotFoundError | ConfigDecodeErro
 type SessionsRequirements = Fs | PathService | CommandExecutor.CommandExecutor
 
 const dockerOk = [0]
-const baselineFile = "/run/docker-git/terminal-baseline.pids"
+const baselineFile = "/run/spawn/terminal-baseline.pids"
 
 const buildFilteredPs = (mode: "tty" | "bg"): string =>
   `ps -eo pid,tty,etime,cmd --sort=etime | awk -v base="$BASELINE_FILE" -v mode="${mode}" 'BEGIN { while ((getline < base) > 0) baseline[$1]=1 } NR==1 {print; next} { pid=$1; tty=$2; cmd=$4; for (i=5;i<=NF;i++) cmd=cmd " " $i; if (baseline[pid]) next; if (cmd ~ /^sshd/ || cmd ~ /^-?bash/ || cmd ~ /^bash/ || cmd ~ /^sh/ || cmd ~ /^zsh/ || cmd ~ /^fish/ || cmd ~ /^ps / || cmd ~ /^awk / || cmd ~ /^grep / || cmd ~ /^tail / || cmd ~ /^who /) next; if (mode=="tty" && tty=="?") next; if (mode=="bg" && tty!="?") next; print; found=1 } END { if (!found) print "(none)" }'`
@@ -166,7 +166,7 @@ const logsScript = [
   "tail -n \"$lines\" \"$logfile\" 2>&1"
 ].join("; ")
 
-// CHANGE: list active terminal sessions inside a docker-git container
+// CHANGE: list active terminal sessions inside a spawn container
 // WHY: expose container TTY/background processes from CLI
 // QUOTE(ТЗ): "CLI команду которая из докера вернёт запущенные терминал сессии"
 // REF: user-request-2026-02-04-terminal-sessions
@@ -181,7 +181,7 @@ export const listTerminalSessions = (
 ): Effect.Effect<void, SessionsError, SessionsRequirements> =>
   runSessionScript(command.projectDir, [buildListSessionsScript(command.includeDefault)])
 
-// CHANGE: stop a background process inside a docker-git container
+// CHANGE: stop a background process inside a spawn container
 // WHY: allow shutting down long-running terminal jobs from CLI
 // QUOTE(ТЗ): "иметь возможность его отключать"
 // REF: user-request-2026-02-04-terminal-sessions

@@ -17,10 +17,10 @@ export const resolveDockerGitRootRelativePath = (
   const normalized = inputPath
     .replaceAll("\\", "/")
     .replace(/^\.\//, "")
-  if (normalized === ".docker-git") {
+  if (normalized === ".spawn") {
     return projectsRoot
   }
-  const prefix = ".docker-git/"
+  const prefix = ".spawn/"
   if (normalized.startsWith(prefix)) {
     return path.join(projectsRoot, normalized.slice(prefix.length))
   }

@@ -14,9 +14,9 @@ fi`
 
 const renderClonePreamble = (): string =>
   `# 2) Auto-clone repo if not already present
-mkdir -p /run/docker-git
-CLONE_DONE_PATH="/run/docker-git/clone.done"
-CLONE_FAIL_PATH="/run/docker-git/clone.failed"
+mkdir -p /run/spawn
+CLONE_DONE_PATH="/run/spawn/clone.done"
+CLONE_FAIL_PATH="/run/spawn/clone.failed"
 rm -f "$CLONE_DONE_PATH" "$CLONE_FAIL_PATH"
 
 CLONE_OK=1`
@@ -90,7 +90,7 @@ const renderCloneAuthRepoUrl = (): string =>
 const renderCloneCacheInit = (config: TemplateConfig): string =>
   `  CLONE_CACHE_ARGS=""
   CACHE_REPO_DIR=""
-  CACHE_ROOT="/home/${config.sshUser}/.docker-git/.cache/git-mirrors"
+  CACHE_ROOT="/home/${config.sshUser}/.spawn/.cache/git-mirrors"
   if command -v sha256sum >/dev/null 2>&1; then
     REPO_CACHE_KEY="$(printf "%s" "$REPO_URL" | sha256sum | awk '{print $1}')"
   elif command -v shasum >/dev/null 2>&1; then

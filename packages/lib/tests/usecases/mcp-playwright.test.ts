@@ -16,7 +16,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-mcp-playwright-"
+          prefix: "spawn-mcp-playwright-"
         })
       )
       return yield* _(use(tempDir))
@@ -32,7 +32,7 @@ const makeGlobalConfig = (root: string, path: Path.Path): TemplateConfig => ({
   repoRef: "main",
   targetDir: "/home/dev/org/repo",
   volumeName: "dg-test-home",
-  dockerGitPath: path.join(root, ".docker-git"),
+  dockerGitPath: path.join(root, ".spawn"),
   authorizedKeysPath: path.join(root, "authorized_keys"),
   envGlobalPath: path.join(root, ".orch/env/global.env"),
   envProjectPath: path.join(root, ".orch/env/project.env"),
@@ -40,7 +40,7 @@ const makeGlobalConfig = (root: string, path: Path.Path): TemplateConfig => ({
   codexSharedAuthPath: path.join(root, ".orch/auth/codex-shared"),
   codexHome: "/home/dev/.codex",
   dockerNetworkMode: "shared",
-  dockerSharedNetworkName: "docker-git-shared",
+  dockerSharedNetworkName: "spawn-shared",
   enableMcpPlaywright: false,
   pnpmVersion: "10.27.0"
 })
@@ -58,7 +58,7 @@ const makeProjectConfig = (
   repoRef: "main",
   targetDir: "/home/dev/org/repo",
   volumeName: "dg-test-home",
-  dockerGitPath: path.join(outDir, ".docker-git"),
+  dockerGitPath: path.join(outDir, ".spawn"),
   authorizedKeysPath: path.join(outDir, "authorized_keys"),
   envGlobalPath: path.join(outDir, ".orch/env/global.env"),
   envProjectPath: path.join(outDir, ".orch/env/project.env"),
@@ -66,7 +66,7 @@ const makeProjectConfig = (
   codexSharedAuthPath: path.join(outDir, ".orch/auth/codex-shared"),
   codexHome: "/home/dev/.codex",
   dockerNetworkMode: "shared",
-  dockerSharedNetworkName: "docker-git-shared",
+  dockerSharedNetworkName: "spawn-shared",
   enableMcpPlaywright,
   pnpmVersion: "10.27.0"
 })
@@ -120,7 +120,7 @@ describe("enableMcpPlaywrightProjectFiles", () => {
         const dockerfileAfter = yield* _(fs.readFileString(path.join(outDir, "Dockerfile")))
         expect(dockerfileAfter).toContain("@playwright/mcp")
 
-        // CHANGE: verify retry logic is included in docker-git-playwright-mcp wrapper
+        // CHANGE: verify retry logic is included in spawn-playwright-mcp wrapper
         // WHY: issue-123 requires retry mechanism to handle browser sidecar startup delays
         // QUOTE(issue-123): "Почему MCP сервер лежит с ошибкой?"
         // REF: issue-123
@@ -134,7 +134,7 @@ describe("enableMcpPlaywrightProjectFiles", () => {
         expect(browserDockerfileExists).toBe(true)
         expect(startExtraExists).toBe(true)
 
-        const configAfterText = yield* _(fs.readFileString(path.join(outDir, "docker-git.json")))
+        const configAfterText = yield* _(fs.readFileString(path.join(outDir, "spawn.json")))
         const configAfter = yield* _(Effect.sync((): unknown => JSON.parse(configAfterText)))
         expect(readEnableMcpPlaywrightFlag(configAfter)).toBe(true)
       })

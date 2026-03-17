@@ -32,7 +32,7 @@ type UsageCase = {
 }
 
 const usageCases: ReadonlyArray<UsageCase> = [
-  { argv: ["node", "main"], needle: "pnpm docker-git" },
+  { argv: ["node", "main"], needle: "pnpm spawn" },
   { argv: ["node", "main", "Alice"], needle: "Usage:" }
 ]
 

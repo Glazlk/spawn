@@ -14,7 +14,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-auth-gemini-"
+          prefix: "spawn-auth-gemini-"
         })
       )
       return yield* _(use(tempDir))
@@ -29,7 +29,7 @@ describe("authGeminiLogin", () => {
         const path = yield* _(Path.Path)
         
         // Mock the environment by setting the auth path to our temp root
-        const geminiAuthPath = ".docker-git/.orch/auth/gemini"
+        const geminiAuthPath = ".spawn/.orch/auth/gemini"
         const accountLabel = "test-account"
         // In the real app, resolvePathFromCwd is used. 
         // For the test, we'll bypass the complex resolution and check if we can call the core logic.
@@ -61,7 +61,7 @@ describe("authGeminiLogin", () => {
         expect(settings.model.name).toBe("gemini-3.1-pro-preview")
         expect(settings.modelConfigs.customAliases["yolo-ultra"]).toBeDefined()
         expect(settings.general.defaultApprovalMode).toBe("auto_edit")
-        expect(settings.mcpServers.playwright.command).toBe("docker-git-playwright-mcp")
+        expect(settings.mcpServers.playwright.command).toBe("spawn-playwright-mcp")
         expect(settings.security.folderTrust.enabled).toBe(false)
         expect(settings.tools.allowed).toContain("googleSearch")
       })

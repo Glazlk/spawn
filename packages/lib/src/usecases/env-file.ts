@@ -151,7 +151,7 @@ export const upsertEnvKey = (input: string, key: string, value: string): string 
 // COMPLEXITY: O(n) where n = |lines|
 export const removeEnvKey = (input: string, key: string): string => upsertEnvKey(input, key, "")
 
-export const defaultEnvContents = "# docker-git env\n# KEY=value\n"
+export const defaultEnvContents = "# spawn env\n# KEY=value\n"
 
 // CHANGE: ensure env file exists
 // WHY: persist auth tokens in a stable file

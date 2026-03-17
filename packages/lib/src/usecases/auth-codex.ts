@@ -23,8 +23,8 @@ type CodexAccountContext = {
   readonly cwd: string
 }
 
-const codexImageName = "docker-git-auth-codex:latest"
-const codexImageDir = ".docker-git/.orch/auth/codex/.image"
+const codexImageName = "spawn-auth-codex:latest"
+const codexImageDir = ".spawn/.orch/auth/codex/.image"
 const codexHome = "/codex-home"
 
 const ensureCodexOrchLayout = (
@@ -35,8 +35,8 @@ const ensureCodexOrchLayout = (
     envGlobalPath: defaultTemplateConfig.envGlobalPath,
     envProjectPath: defaultTemplateConfig.envProjectPath,
     codexAuthPath,
-    ghAuthPath: ".docker-git/.orch/auth/gh",
-    claudeAuthPath: ".docker-git/.orch/auth/claude"
+    ghAuthPath: ".spawn/.orch/auth/gh",
+    claudeAuthPath: ".spawn/.orch/auth/claude"
   })
 
 const renderCodexDockerfile = (): string =>

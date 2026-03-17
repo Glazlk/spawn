@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # E2E regression test for Issue #61:
-# - multiple labeled auth entries in ~/.docker-git/.orch
+# - multiple labeled auth entries in ~/.spawn/.orch
 # - non-interactive auth storage
 # - project label binding (distributing the selected label into a project env)
 # - state auto-sync commits/pushes without user interaction
@@ -11,13 +11,13 @@ RUN_ID="$(date +%s)-$RANDOM"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$REPO_ROOT/scripts/e2e/_lib.sh"
-ROOT_BASE="${DOCKER_GIT_E2E_ROOT_BASE:-$REPO_ROOT/.docker-git/e2e-root}"
+ROOT_BASE="${SPAWN_E2E_ROOT_BASE:-$REPO_ROOT/.spawn/e2e-root}"
 mkdir -p "$ROOT_BASE"
 ROOT="$(mktemp -d "$ROOT_BASE/issue-61-auth-labels.XXXXXX")"
 chmod 0777 "$ROOT"
 KEEP="${KEEP:-0}"
 
-export DOCKER_GIT_PROJECTS_ROOT="$ROOT"
+export SPAWN_PROJECTS_ROOT="$ROOT"
 
 # Keep the bare origin remote outside the state repo root so auto-sync commits
 # don't accidentally include its objects/refs.
@@ -52,13 +52,13 @@ trap cleanup EXIT
 # Prepare an isolated state repo at $ROOT with a local bare origin.
 mkdir -p "$ROOT/.orch/env"
 cat > "$ROOT/.orch/env/global.env" <<'EOF_ENV'
-# docker-git env
+# spawn env
 # KEY=value
 EOF_ENV
 
 git -C "$ROOT" init -b main >/dev/null
 git -C "$ROOT" config user.email "e2e@example.com"
-git -C "$ROOT" config user.name "docker-git e2e"
+git -C "$ROOT" config user.name "spawn e2e"
 git -C "$ROOT" add -A
 git -C "$ROOT" commit -m "chore(e2e): init state" >/dev/null
 git init --bare --initial-branch=main "$REMOTE" >/dev/null
@@ -66,7 +66,7 @@ git -C "$ROOT" remote add origin "$REMOTE"
 git -C "$ROOT" push --no-verify -u origin main >/dev/null
 
 # Enable auto-sync. This should commit+push to the local bare remote above.
-export DOCKER_GIT_STATE_AUTO_SYNC=1
+export SPAWN_STATE_AUTO_SYNC=1
 
 default_token="token_default_$RUN_ID"
 agiens_token="token_agiens_$RUN_ID"
@@ -75,11 +75,11 @@ git_token="git_token_$RUN_ID"
 # 1) Store multiple GitHub tokens by label (non-interactive / CI path).
 (
   cd "$REPO_ROOT"
-  pnpm run docker-git auth gh login --token "$default_token"
+  pnpm run spawn auth gh login --token "$default_token"
 )
 (
   cd "$REPO_ROOT"
-  pnpm run docker-git auth gh login --token "$agiens_token" --label agiens
+  pnpm run spawn auth gh login --token "$agiens_token" --label agiens
 )
 
 grep -Fq -- "GITHUB_TOKEN=$default_token" "$ROOT/.orch/env/global.env" \
@@ -97,7 +97,7 @@ PROJECT_DIR="$ROOT/e2e/project-1"
 PROJECT_ENV="$PROJECT_DIR/.orch/env/project.env"
 mkdir -p "$(dirname "$PROJECT_ENV")"
 cat > "$PROJECT_ENV" <<'EOF_ENV'
-# docker-git project env (e2e)
+# spawn project env (e2e)
 EOF_ENV
 
 (
@@ -111,8 +111,8 @@ import { Effect } from "effect"
 import { mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
-import { writeAuthFlow } from "./dist/src/docker-git/menu-auth-data.js"
-import { writeProjectAuthFlow } from "./dist/src/docker-git/menu-project-auth-data.js"
+import { writeAuthFlow } from "./dist/src/spawn/menu-auth-data.js"
+import { writeProjectAuthFlow } from "./dist/src/spawn/menu-project-auth-data.js"
 
 const projectDir = process.env.PROJECT_DIR ?? ""
 const envProjectPath = process.env.PROJECT_ENV_PATH ?? ""
@@ -132,13 +132,13 @@ const project = {
 }
 
 const main = Effect.gen(function*(_) {
-  // Create labeled profiles in ~/.docker-git/.orch/env/global.env
+  // Create labeled profiles in ~/.spawn/.orch/env/global.env
   yield* _(writeAuthFlow(process.cwd(), "GitSet", { label: "agiens", token: gitToken, user: "x-access-token" }))
 
   // Stub a Claude Code OAuth cache for the same label so project binding can validate it.
-  const root = process.env.DOCKER_GIT_PROJECTS_ROOT ?? ""
+  const root = process.env.SPAWN_PROJECTS_ROOT ?? ""
   if (root.length === 0) {
-    throw new Error("missing DOCKER_GIT_PROJECTS_ROOT")
+    throw new Error("missing SPAWN_PROJECTS_ROOT")
   }
   const claudeAuthDir = join(root, ".orch", "auth", "claude", "agiens")
   mkdirSync(claudeAuthDir, { recursive: true })

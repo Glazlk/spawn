@@ -10,8 +10,8 @@ export type FileSpec =
   | { readonly _tag: "Dir"; readonly relativePath: string }
 
 const renderGitignore = (): string =>
-  `# docker-git project files
-# NOTE: this directory is intended to be committed to the docker-git state repository.
+  `# spawn project files
+# NOTE: this directory is intended to be committed to the spawn state repository.
 # It intentionally does not ignore .orch/ or auth files; keep the state repo private.
 
 # Volatile Codex artifacts (do not commit)
@@ -22,7 +22,7 @@ const renderGitignore = (): string =>
 `
 
 const renderDockerignore = (): string =>
-  `# docker-git build context
+  `# spawn build context
 .orch/
 authorized_keys
 `
@@ -56,7 +56,7 @@ export const planFiles = (
       contents: renderDockerCompose(config, composeResourceLimits)
     },
     { _tag: "File", relativePath: ".dockerignore", contents: renderDockerignore() },
-    { _tag: "File", relativePath: "docker-git.json", contents: renderConfigJson(config) },
+    { _tag: "File", relativePath: "spawn.json", contents: renderConfigJson(config) },
     { _tag: "File", relativePath: ".gitignore", contents: renderGitignore() },
     ...maybePlaywrightFiles,
     { _tag: "Dir", relativePath: ".orch/auth/codex" },

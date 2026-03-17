@@ -4,7 +4,7 @@ import type { TemplateConfig } from "../core/domain.js"
 import { withDefaultResourceLimitIntent } from "../core/resource-limits.js"
 
 // CHANGE: backfill default resource limit intent for projects that do not specify it.
-// WHY: docker-git should persist the safe 30% CPU/RAM default unless the user overrides it.
+// WHY: spawn should persist the safe 30% CPU/RAM default unless the user overrides it.
 // QUOTE(ТЗ): "надо поставить лимит что если контейнер жрёт под максимум то не забивает всё"
 // REF: issue-135
 // SOURCE: n/a

@@ -34,7 +34,7 @@ export type FederationContext = {
   readonly followsActivityPrefix: string
 }
 
-const defaultActorUsername = "docker-git"
+const defaultActorUsername = "spawn"
 
 const issueStore: Map<string, FederationIssueRecord> = new Map()
 const followStore: Map<string, FollowSubscription> = new Map()
@@ -121,7 +121,7 @@ const parseTicket = (
     const attributedTo = yield* _(readRequiredString(payload, "attributedTo", "ForgeFed ticket"))
     const summary = yield* _(readRequiredString(payload, "summary", "ForgeFed ticket"))
     const content = yield* _(readRequiredString(payload, "content", "ForgeFed ticket"))
-    const id = readOptionalString(payload, "id") ?? `urn:docker-git:forgefed:ticket:${randomUUID()}`
+    const id = readOptionalString(payload, "id") ?? `urn:spawn:forgefed:ticket:${randomUUID()}`
 
     return {
       id,
@@ -280,9 +280,9 @@ export const makeFederationActorDocument = (
   "@context": "https://www.w3.org/ns/activitystreams",
   type: "Person",
   id: context.actorId,
-  name: "docker-git task feed",
+  name: "spawn task feed",
   preferredUsername: context.actorUsername,
-  summary: "docker-git ActivityPub actor for task and issue stream subscriptions.",
+  summary: "spawn ActivityPub actor for task and issue stream subscriptions.",
   inbox: context.inbox,
   outbox: context.outbox,
   followers: context.followers,
@@ -455,8 +455,8 @@ const ingestOfferTicket = (
     })
     
     // Пересылаем задачу в OrderQue через JSON-LD
-    const orderQueUrl = process.env["DOCKER_GIT_ORDERQUE_URL"] ?? "http://localhost:7277"
-    const apiPublicUrl = process.env["DOCKER_GIT_API_PUBLIC_URL"] ?? "http://localhost:3334"
+    const orderQueUrl = process.env["SPAWN_ORDERQUE_URL"] ?? "http://localhost:7277"
+    const apiPublicUrl = process.env["SPAWN_API_PUBLIC_URL"] ?? "http://localhost:3334"
     
     yield* _(Effect.tryPromise({
       try: async () => {

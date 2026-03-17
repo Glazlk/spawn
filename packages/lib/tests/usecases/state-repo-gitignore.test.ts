@@ -14,7 +14,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-state-gitignore-"
+          prefix: "spawn-state-gitignore-"
         })
       )
       return yield* _(use(tempDir))
@@ -31,7 +31,7 @@ describe("ensureStateGitignore", () => {
         yield* _(ensureStateGitignore(fs, path, root))
 
         const gitignore = yield* _(fs.readFileString(path.join(root, ".gitignore")))
-        expect(gitignore).toContain("# docker-git state repository")
+        expect(gitignore).toContain("# spawn state repository")
         expect(gitignore).toContain(".cache/git-mirrors/")
         expect(gitignore).toContain(".cache/packages/")
         expect(gitignore).toContain("**/.orch/auth/codex/models_cache.json")
@@ -45,7 +45,7 @@ describe("ensureStateGitignore", () => {
         const path = yield* _(Path.Path)
         const gitignorePath = path.join(root, ".gitignore")
         const existing = [
-          "# docker-git state repository",
+          "# spawn state repository",
           "# NOTE: this repo intentionally tracks EVERYTHING under the state dir, including .orch/env and .orch/auth.",
           "# Keep the remote private; treat it as sensitive infrastructure state.",
           "",

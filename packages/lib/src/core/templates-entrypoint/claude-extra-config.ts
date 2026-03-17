@@ -43,9 +43,9 @@ fi
 if [[ "$CLAUDE_AUTO_SYSTEM_PROMPT" == "1" ]]; then
   mkdir -p "$(dirname "$CLAUDE_GLOBAL_PROMPT_FILE")"
   chown 1000:1000 "$(dirname "$CLAUDE_GLOBAL_PROMPT_FILE")" 2>/dev/null || true
-  if [[ ! -f "$CLAUDE_GLOBAL_PROMPT_FILE" ]] || grep -q "^<!-- docker-git-managed:claude-md -->$" "$CLAUDE_GLOBAL_PROMPT_FILE"; then
+  if [[ ! -f "$CLAUDE_GLOBAL_PROMPT_FILE" ]] || grep -q "^<!-- spawn-managed:claude-md -->$" "$CLAUDE_GLOBAL_PROMPT_FILE"; then
     cat <<EOF > "$CLAUDE_GLOBAL_PROMPT_FILE"
-<!-- docker-git-managed:claude-md -->
+<!-- spawn-managed:claude-md -->
 Ты автономный агент, который имеет полностью все права управления контейнером. У тебя есть доступ к командам sudo, gh, codex, opencode, oh-my-opencode, sshpass, claude, git, node, pnpm и всем остальным другим. Проекты с которыми идёт работа лежат по пути ~
 Рабочая папка проекта (git clone): __TARGET_DIR__
 Доступные workspace пути: __TARGET_DIR__
@@ -54,7 +54,7 @@ $CLAUDE_WORKSPACE_CONTEXT
 Доступ к интернету: есть. Если чего-то не знаешь — ищи в интернете или по кодовой базе.
 Для решения задач обязательно используй subagents. Сам агент обязан выполнять финальную проверку, интеграцию и валидацию результата перед ответом пользователю.
 Если ты видишь файлы AGENTS.md или CLAUDE.md внутри проекта, ты обязан их читать и соблюдать инструкции.
-<!-- /docker-git-managed:claude-md -->
+<!-- /spawn-managed:claude-md -->
 EOF
     chmod 0644 "$CLAUDE_GLOBAL_PROMPT_FILE" || true
     chown 1000:1000 "$CLAUDE_GLOBAL_PROMPT_FILE" || true
@@ -85,13 +85,13 @@ export const renderClaudeWrapperSetup = (): string =>
 if command -v claude >/dev/null 2>&1; then
   CURRENT_CLAUDE_BIN="$(command -v claude)"
   CLAUDE_REAL_DIR="$(dirname "$CURRENT_CLAUDE_BIN")"
-  CLAUDE_REAL_BIN="$CLAUDE_REAL_DIR/.docker-git-claude-real"
+  CLAUDE_REAL_BIN="$CLAUDE_REAL_DIR/.spawn-claude-real"
 
   # If a wrapper already exists but points to a missing real binary, recover from /usr/bin.
   if [[ "$CURRENT_CLAUDE_BIN" == "$CLAUDE_WRAPPER_BIN" && ! -e "$CLAUDE_REAL_BIN" && -x "/usr/bin/claude" ]]; then
     CURRENT_CLAUDE_BIN="/usr/bin/claude"
     CLAUDE_REAL_DIR="/usr/bin"
-    CLAUDE_REAL_BIN="$CLAUDE_REAL_DIR/.docker-git-claude-real"
+    CLAUDE_REAL_BIN="$CLAUDE_REAL_DIR/.spawn-claude-real"
   fi
 
   # Keep the "real" binary in the same directory as the original command to preserve relative symlinks.

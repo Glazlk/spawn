@@ -102,7 +102,7 @@ const failOnExistingFiles = (
   return Effect.fail(new FileExistsError({ path: firstPath }))
 }
 
-// CHANGE: write generated docker-git files to disk
+// CHANGE: write generated spawn files to disk
 // WHY: isolate all filesystem effects in a thin shell
 // QUOTE(ТЗ): "создавать докер образы"
 // REF: user-request-2026-01-07

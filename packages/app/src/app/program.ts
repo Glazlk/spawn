@@ -1,21 +1,21 @@
-import { listProjects, readCloneRequest, runDockerGitClone, runDockerGitOpen } from "@effect-template/lib"
+import { listProjects, readCloneRequest, runDockerGitClone, runDockerGitOpen } from "@spawn-dev/lib"
 import { Console, Effect, Match, pipe } from "effect"
 
 /**
  * Compose the CLI program as a single effect.
  *
- * @returns Effect that either runs docker-git clone/open or prints usage.
+ * @returns Effect that either runs spawn clone/open or prints usage.
  *
  * @pure false - uses Console output and spawns commands when running shortcuts
  * @effect Console, CommandExecutor, Path
- * @invariant forall args in Argv: shortcut(args) -> docker_git_invoked(args)
+ * @invariant forall args in Argv: shortcut(args) -> spawn_invoked(args)
  * @precondition true
- * @postcondition shortcut(args) -> docker_git_invoked(args); otherwise usage printed
+ * @postcondition shortcut(args) -> spawn_invoked(args); otherwise usage printed
  * @complexity O(build + shortcut)
  * @throws Never - all errors are typed in the Effect error channel
  */
 // CHANGE: replace greeting demo with deterministic usage text
-// WHY: greeting was scaffolding noise and should not ship in docker-git tooling
+// WHY: greeting was scaffolding noise and should not ship in spawn tooling
 // QUOTE(ТЗ): "Можешь удалить использование greting ...? Это старый мусор который остался"
 // REF: user-request-2026-02-06-remove-greeting
 // SOURCE: n/a
@@ -26,15 +26,15 @@ import { Console, Effect, Match, pipe } from "effect"
 // COMPLEXITY: O(1)
 const usageText = [
   "Usage:",
-  "  pnpm docker-git",
+  "  pnpm spawn",
   "  pnpm clone <repo-url> [ref]",
   "  pnpm open <repo-url>",
   "  pnpm list",
   "",
   "Notes:",
-  "  - docker-git is the interactive TUI.",
-  "  - clone builds + runs docker-git clone for you.",
-  "  - open builds + runs docker-git open for existing projects."
+  "  - spawn is the interactive TUI.",
+  "  - clone builds + runs spawn clone for you.",
+  "  - open builds + runs spawn open for existing projects."
 ].join("\n")
 
 // PURITY: SHELL
@@ -46,7 +46,7 @@ const runHelp = Console.log(usageText)
 // QUOTE(ТЗ): "Добавить команду open."
 // REF: user-request-2026-01-27
 // SOURCE: n/a
-// FORMAT THEOREM: forall argv: shortcut(argv) -> docker_git_invoked(argv)
+// FORMAT THEOREM: forall argv: shortcut(argv) -> spawn_invoked(argv)
 // PURITY: SHELL
 // EFFECT: Effect<void, Error, Console | CommandExecutor | Path>
 // INVARIANT: help is printed when shortcut is not requested

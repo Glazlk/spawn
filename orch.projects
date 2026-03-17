@@ -2,4 +2,4 @@
 # Example:
 # dev-ssh|/abs/path/docker-compose.yml|dev|dev-ssh|dev|2222|localhost|/abs/path/dev_ssh_key|/home/dev/app
 
-dev-ssh|/home/user/docker-git/docker-compose.yml|dev|dev-ssh|dev|2222|localhost|/home/user/docker-git/dev_ssh_key|/home/dev/app
+dev-ssh|/home/user/spawn/docker-compose.yml|dev|dev-ssh|dev|2222|localhost|/home/user/spawn/dev_ssh_key|/home/dev/app

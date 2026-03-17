@@ -51,16 +51,16 @@ const translatePathPrefix = (candidate: string, sourcePrefix: string, targetPref
     : null
 
 const resolveContainerProjectsRoot = (): string | null => {
-  const explicit = resolveDockerEnvValue("DOCKER_GIT_PROJECTS_ROOT")
+  const explicit = resolveDockerEnvValue("SPAWN_PROJECTS_ROOT")
   if (explicit !== null) {
     return explicit
   }
 
   const home = resolveDockerEnvValue("HOME") ?? resolveDockerEnvValue("USERPROFILE")
-  return home === null ? null : `${trimDockerPathTrailingSlash(home)}/.docker-git`
+  return home === null ? null : `${trimDockerPathTrailingSlash(home)}/.spawn`
 }
 
-const resolveProjectsRootHostOverride = (): string | null => resolveDockerEnvValue("DOCKER_GIT_PROJECTS_ROOT_HOST")
+const resolveProjectsRootHostOverride = (): string | null => resolveDockerEnvValue("SPAWN_PROJECTS_ROOT_HOST")
 
 const resolveCurrentContainerId = (
   cwd: string
@@ -214,7 +214,7 @@ const buildDockerArgs = (spec: DockerAuthSpec): ReadonlyArray<string> => {
 }
 
 // CHANGE: expose docker CLI args builder for advanced auth flows (stdin piping)
-// WHY: some OAuth CLIs (Claude Code) don't reliably render their input UI; docker-git needs to drive stdin explicitly
+// WHY: some OAuth CLIs (Claude Code) don't reliably render their input UI; spawn needs to drive stdin explicitly
 // REF: issue-61
 // SOURCE: n/a
 // PURITY: CORE

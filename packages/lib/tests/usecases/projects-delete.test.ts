@@ -10,7 +10,7 @@ import * as Sink from "effect/Sink"
 import * as Stream from "effect/Stream"
 
 import type { ProjectItem } from "../../src/usecases/projects-core.js"
-import { deleteDockerGitProject } from "../../src/usecases/projects-delete.js"
+import { deleteSpawnProject } from "../../src/usecases/projects-delete.js"
 
 type RecordedCommand = {
   readonly command: string
@@ -40,7 +40,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-delete-project-"
+          prefix: "spawn-delete-project-"
         })
       )
       return yield* _(use(tempDir))
@@ -54,16 +54,16 @@ const withProjectsRootEnv = <A, E, R>(
   Effect.scoped(
     Effect.acquireRelease(
       Effect.sync(() => {
-        const prev = process.env["DOCKER_GIT_PROJECTS_ROOT"]
-        process.env["DOCKER_GIT_PROJECTS_ROOT"] = projectsRoot
+        const prev = process.env["SPAWN_PROJECTS_ROOT"]
+        process.env["SPAWN_PROJECTS_ROOT"] = projectsRoot
         return prev
       }),
       (prev) =>
         Effect.sync(() => {
           if (prev === undefined) {
-            delete process.env["DOCKER_GIT_PROJECTS_ROOT"]
+            delete process.env["SPAWN_PROJECTS_ROOT"]
           } else {
-            process.env["DOCKER_GIT_PROJECTS_ROOT"] = prev
+            process.env["SPAWN_PROJECTS_ROOT"] = prev
           }
         })
     ).pipe(Effect.flatMap(() => effect))
@@ -133,7 +133,7 @@ const makeFakeExecutor = (
   return CommandExecutor.makeExecutor(start)
 }
 
-describe("deleteDockerGitProject", () => {
+describe("deleteSpawnProject", () => {
   it.effect("runs docker compose down -v before deleting the project directory", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
@@ -148,7 +148,7 @@ describe("deleteDockerGitProject", () => {
         yield* _(
           withProjectsRootEnv(
             root,
-            deleteDockerGitProject(item).pipe(
+            deleteSpawnProject(item).pipe(
               Effect.provideService(CommandExecutor.CommandExecutor, executor)
             )
           )
@@ -180,7 +180,7 @@ describe("deleteDockerGitProject", () => {
         yield* _(
           withProjectsRootEnv(
             root,
-            deleteDockerGitProject(item).pipe(
+            deleteSpawnProject(item).pipe(
               Effect.provideService(CommandExecutor.CommandExecutor, executor)
             )
           )

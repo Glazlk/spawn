@@ -5,24 +5,24 @@ RUN_ID="$(date +%s)-$RANDOM"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$REPO_ROOT/scripts/e2e/_lib.sh"
-ROOT_BASE="${DOCKER_GIT_E2E_ROOT_BASE:-$REPO_ROOT/.docker-git/e2e-root}"
+ROOT_BASE="${SPAWN_E2E_ROOT_BASE:-$REPO_ROOT/.spawn/e2e-root}"
 mkdir -p "$ROOT_BASE"
 ROOT="$(mktemp -d "$ROOT_BASE/opencode-autoconnect.XXXXXX")"
-# docker-git containers may `chown -R` the `.docker-git` bind mount to UID 1000.
+# spawn containers may `chown -R` the `.spawn` bind mount to UID 1000.
 # `mktemp -d` creates 0700 dirs; if ownership changes, the host runner may lose access.
 chmod 0755 "$ROOT"
 KEEP="${KEEP:-0}"
 
-# Keep compose project/volume names unique to avoid interfering with any local docker-git state.
-OUT_DIR_REL=".docker-git/e2e/opencode-autoconnect-$RUN_ID"
+# Keep compose project/volume names unique to avoid interfering with any local spawn state.
+OUT_DIR_REL=".spawn/e2e/opencode-autoconnect-$RUN_ID"
 OUT_DIR="$ROOT/e2e/opencode-autoconnect-$RUN_ID"
 CONTAINER_NAME="dg-e2e-opencode-$RUN_ID"
 SERVICE_NAME="dg-e2e-opencode-$RUN_ID"
 VOLUME_NAME="dg-e2e-opencode-$RUN_ID-home"
 SSH_PORT="$(( (RANDOM % 1000) + 20000 ))"
 
-export DOCKER_GIT_PROJECTS_ROOT="$ROOT"
-export DOCKER_GIT_STATE_AUTO_SYNC=0
+export SPAWN_PROJECTS_ROOT="$ROOT"
+export SPAWN_STATE_AUTO_SYNC=0
 
 REPO_URL="https://github.com/octocat/Hello-World/issues/1"
 TARGET_DIR="/home/dev/workspaces/octocat/hello-world/issue-1"
@@ -73,7 +73,7 @@ cleanup() {
 trap 'on_error $LINENO' ERR
 trap cleanup EXIT
 
-# Ensure docker-git sees a file path for authorized_keys and has a place for shared `.orch` auth.
+# Ensure spawn sees a file path for authorized_keys and has a place for shared `.orch` auth.
 mkdir -p "$ROOT/.orch/auth/codex"
 : > "$ROOT/authorized_keys"
 
@@ -105,7 +105,7 @@ NODE
 # Keep the container startup deterministic and fast for CI.
 mkdir -p "$OUT_DIR/.orch/env"
 cat > "$OUT_DIR/.orch/env/project.env" <<'EOF_ENV'
-# docker-git project env (e2e)
+# spawn project env (e2e)
 CODEX_AUTO_UPDATE=0
 CODEX_SHARE_AUTH=1
 OPENCODE_SHARE_AUTH=1
@@ -119,7 +119,7 @@ while [[ "$clone_attempt" -le "$clone_attempts" ]]; do
   set +e
   (
     cd "$REPO_ROOT"
-	    pnpm run docker-git clone "$REPO_URL" \
+	    pnpm run spawn clone "$REPO_URL" \
 	      --force \
 	      --no-ssh \
 	      --repo-ref master \
@@ -140,7 +140,7 @@ while [[ "$clone_attempt" -le "$clone_attempts" ]]; do
   clone_attempt="$((clone_attempt + 1))"
   sleep 2
 done
-[[ "$clone_exit" -eq 0 ]] || fail "docker-git clone failed after $clone_attempts attempts (last exit: $clone_exit)"
+[[ "$clone_exit" -eq 0 ]] || fail "spawn clone failed after $clone_attempts attempts (last exit: $clone_exit)"
 
 docker exec -u dev "$CONTAINER_NAME" bash -lc "test -d '$TARGET_DIR/.git'" || fail "expected repo to be cloned at: $TARGET_DIR"
 

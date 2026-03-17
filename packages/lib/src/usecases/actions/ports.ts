@@ -24,7 +24,7 @@ export const resolveSshPort = (
     const selected = yield* _(selectAvailablePort(config.sshPort, maxPortAttempts, reservedPorts))
     if (selected !== config.sshPort) {
       const reason = reservedPorts.has(config.sshPort)
-        ? "already reserved by another docker-git project"
+        ? "already reserved by another spawn project"
         : "already in use"
       yield* _(
         Effect.logWarning(

@@ -232,6 +232,6 @@ console.error("   2) bash scripts/pre-commit-secret-guard.sh");
 console.error("   3) node scripts/repair-knowledge-history.js");
 console.error("   4) git push");
 console.error("");
-console.error("To bypass this guard (not recommended): set DOCKER_GIT_SKIP_KNOWLEDGE_GUARD=1");
+console.error("To bypass this guard (not recommended): set SPAWN_SKIP_KNOWLEDGE_GUARD=1");
 
 process.exit(1);

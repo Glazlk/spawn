@@ -47,10 +47,10 @@ const renderAgentAutoEnv = (agentAuto: boolean | undefined): string =>
     : ""
 
 const renderProjectsRootHostMount = (projectsRoot: string): string =>
-  `\${DOCKER_GIT_PROJECTS_ROOT_HOST:-${projectsRoot}}`
+  `\${SPAWN_PROJECTS_ROOT_HOST:-${projectsRoot}}`
 
 const renderSharedCodexHostMount = (projectsRoot: string): string =>
-  `\${DOCKER_GIT_PROJECTS_ROOT_HOST:-${projectsRoot}}/.orch/auth/codex`
+  `\${SPAWN_PROJECTS_ROOT_HOST:-${projectsRoot}}/.orch/auth/codex`
 
 const renderResourceLimits = (resourceLimits: ResolvedComposeResourceLimits | undefined): string =>
   resourceLimits === undefined
@@ -148,7 +148,7 @@ ${fragments.maybePlaywrightEnv}${fragments.maybeDependsOn}    env_file:
       - "127.0.0.1:${config.sshPort}:22"
 ${renderResourceLimits(resourceLimits)}    volumes:
       - ${config.volumeName}:/home/${config.sshUser}
-      - ${renderProjectsRootHostMount(config.dockerGitPath)}:/home/${config.sshUser}/.docker-git
+      - ${renderProjectsRootHostMount(config.dockerGitPath)}:/home/${config.sshUser}/.spawn
       - ${config.authorizedKeysPath}:/authorized_keys:ro
       - ${config.codexAuthPath}:${config.codexHome}
       - ${renderSharedCodexHostMount(config.dockerGitPath)}:${config.codexHome}-shared

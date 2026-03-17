@@ -10,7 +10,7 @@ import { stripAnsi, writeChunkToFd } from "../shell/ansi-strip.js"
 import { resolveDefaultDockerUser, resolveDockerVolumeHostPath } from "../shell/docker-auth.js"
 import { AuthError, CommandFailedError } from "../shell/errors.js"
 
-const oauthTokenEnvKey = "DOCKER_GIT_CLAUDE_OAUTH_TOKEN"
+const oauthTokenEnvKey = "SPAWN_CLAUDE_OAUTH_TOKEN"
 const tokenMarker = "Your OAuth token (valid for 1 year):"
 const tokenFooterMarker = "Store this token securely."
 const outputWindowSize = 262_144

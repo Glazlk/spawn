@@ -99,9 +99,9 @@ RUN ARCH="$(uname -m)" \
 
 const dockerfilePlaywrightMcpBlock = String.raw`RUN npm install -g @playwright/mcp@latest
 
-# docker-git: wrapper that converts a CDP HTTP endpoint into a usable WS endpoint
+# spawn: wrapper that converts a CDP HTTP endpoint into a usable WS endpoint
 # Some Chromium images return webSocketDebuggerUrl pointing at 127.0.0.1 (container-local).
-RUN cat <<'EOF' > /usr/local/bin/docker-git-playwright-mcp
+RUN cat <<'EOF' > /usr/local/bin/spawn-playwright-mcp
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -141,20 +141,20 @@ for attempt in $(seq 1 "$MCP_PLAYWRIGHT_RETRY_ATTEMPTS"); do
     break
   fi
   if [[ "$attempt" -lt "$MCP_PLAYWRIGHT_RETRY_ATTEMPTS" ]]; then
-    echo "docker-git-playwright-mcp: waiting for browser sidecar (attempt $attempt/$MCP_PLAYWRIGHT_RETRY_ATTEMPTS)..." >&2
+    echo "spawn-playwright-mcp: waiting for browser sidecar (attempt $attempt/$MCP_PLAYWRIGHT_RETRY_ATTEMPTS)..." >&2
     sleep "$MCP_PLAYWRIGHT_RETRY_DELAY"
   fi
 done
 
 if [[ -z "$JSON" ]]; then
-  echo "docker-git-playwright-mcp: failed to connect to CDP endpoint $CDP_ENDPOINT after $MCP_PLAYWRIGHT_RETRY_ATTEMPTS attempts" >&2
+  echo "spawn-playwright-mcp: failed to connect to CDP endpoint $CDP_ENDPOINT after $MCP_PLAYWRIGHT_RETRY_ATTEMPTS attempts" >&2
   exit 1
 fi
 
 # kechangdev/browser-vnc binds Chromium CDP on 127.0.0.1:9222; it also host-checks HTTP requests.
 WS_URL="$(printf "%s" "$JSON" | node -e 'const fs=require("fs"); const j=JSON.parse(fs.readFileSync(0,"utf8")); process.stdout.write(j.webSocketDebuggerUrl || "")')"
 if [[ -z "$WS_URL" ]]; then
-  echo "docker-git-playwright-mcp: webSocketDebuggerUrl missing" >&2
+  echo "spawn-playwright-mcp: webSocketDebuggerUrl missing" >&2
   exit 1
 fi
 
@@ -169,7 +169,7 @@ fi
 
 exec playwright-mcp --cdp-endpoint "$WS_REWRITTEN" "\${EXTRA_ARGS[@]}" "$@"
 EOF
-RUN chmod +x /usr/local/bin/docker-git-playwright-mcp`
+RUN chmod +x /usr/local/bin/spawn-playwright-mcp`
 
 const renderDockerfileBunProfile = (): string =>
   `RUN printf "export PATH=/usr/local/bun/bin:$PATH\\n" \

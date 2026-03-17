@@ -7,7 +7,7 @@ import type { GitAuthEnv } from "./github-auth.js"
 
 // CHANGE: align local history with remote when histories have no common ancestor
 // WHY: prevents creation of new branches when local repo was git-init'd without cloning (divergent root commits)
-// QUOTE(ТЗ): "у нас должна быть единая система облака в виде .docker-git. Новая ветка открывается только тогда когда не возможно исправить конфликт и сделать push в main"
+// QUOTE(ТЗ): "у нас должна быть единая система облака в виде .spawn. Новая ветка открывается только тогда когда не возможно исправить конфликт и сделать push в main"
 // REF: issue-141
 // PURITY: SHELL
 // EFFECT: Effect<void, CommandFailedError | PlatformError, CommandExecutor>

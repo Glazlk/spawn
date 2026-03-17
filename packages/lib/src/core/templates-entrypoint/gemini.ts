@@ -9,10 +9,10 @@ import type { TemplateConfig } from "../domain.js"
 // INVARIANT: configurations are isolated by GEMINI_AUTH_LABEL
 // COMPLEXITY: O(1)
 
-const geminiAuthRootContainerPath = (sshUser: string): string => `/home/${sshUser}/.docker-git/.orch/auth/gemini`
+const geminiAuthRootContainerPath = (sshUser: string): string => `/home/${sshUser}/.spawn/.orch/auth/gemini`
 
 const geminiAuthConfigTemplate = String
-  .raw`# Gemini CLI: expose GEMINI_HOME for sessions (OAuth cache lives under ~/.docker-git/.orch/auth/gemini)
+  .raw`# Gemini CLI: expose GEMINI_HOME for sessions (OAuth cache lives under ~/.spawn/.orch/auth/gemini)
 GEMINI_LABEL_RAW="$GEMINI_AUTH_LABEL"
 if [[ -z "$GEMINI_LABEL_RAW" ]]; then
   GEMINI_LABEL_RAW="default"
@@ -32,7 +32,7 @@ mkdir -p "$GEMINI_CONFIG_DIR" || true
 GEMINI_HOME_DIR="__GEMINI_HOME_DIR__"
 mkdir -p "$GEMINI_HOME_DIR" || true
 
-docker_git_link_gemini_file() {
+spawn_link_gemini_file() {
   local source_path="$1"
   local link_path="$2"
 
@@ -48,8 +48,8 @@ docker_git_link_gemini_file() {
 }
 
 # Link .api-key and .env from central auth storage to container home
-docker_git_link_gemini_file "$GEMINI_CONFIG_DIR/.api-key" "$GEMINI_HOME_DIR/.api-key"
-docker_git_link_gemini_file "$GEMINI_CONFIG_DIR/.env" "$GEMINI_HOME_DIR/.env"
+spawn_link_gemini_file "$GEMINI_CONFIG_DIR/.api-key" "$GEMINI_HOME_DIR/.api-key"
+spawn_link_gemini_file "$GEMINI_CONFIG_DIR/.env" "$GEMINI_HOME_DIR/.env"
 
 # Ensure gemini YOLO wrapper exists
 GEMINI_REAL_BIN="$(command -v gemini || echo "/usr/local/bin/gemini")"
@@ -79,7 +79,7 @@ if [[ -d "$GEMINI_CONFIG_DIR/.gemini" ]]; then
   ln -sfn "$GEMINI_CONFIG_DIR/.gemini" "$GEMINI_HOME_DIR"
 fi
 
-docker_git_refresh_gemini_env() {
+spawn_refresh_gemini_env() {
   # If .api-key exists, export it as GEMINI_API_KEY
   if [[ -f "$GEMINI_HOME_DIR/.api-key" ]]; then
     export GEMINI_API_KEY="$(cat "$GEMINI_HOME_DIR/.api-key" | tr -d '\r\n')"
@@ -92,7 +92,7 @@ docker_git_refresh_gemini_env() {
   fi
 }
 
-docker_git_refresh_gemini_env`
+spawn_refresh_gemini_env`
 
 const renderGeminiAuthConfig = (config: TemplateConfig): string =>
   geminiAuthConfigTemplate
@@ -149,7 +149,7 @@ const geminiSettingsJsonTemplate = `{
   },
   "mcpServers": {
     "playwright": {
-      "command": "docker-git-playwright-mcp",
+      "command": "spawn-playwright-mcp",
       "args": [],
       "trust": true
     }
@@ -157,7 +157,7 @@ const geminiSettingsJsonTemplate = `{
 }`
 
 const renderGeminiPermissionSettingsConfig = (config: TemplateConfig): string =>
-  String.raw`# Gemini CLI: keep trust settings in sync with docker-git defaults
+  String.raw`# Gemini CLI: keep trust settings in sync with spawn defaults
 GEMINI_SETTINGS_DIR="${config.geminiHome}"
 GEMINI_TRUST_SETTINGS_FILE="$GEMINI_SETTINGS_DIR/trustedFolders.json"
 GEMINI_CONFIG_SETTINGS_FILE="$GEMINI_SETTINGS_DIR/settings.json"
@@ -210,11 +210,11 @@ fi
 EOF
 chmod 0644 "$GEMINI_PROFILE" || true
 
-docker_git_upsert_ssh_env "GEMINI_AUTH_LABEL" "$GEMINI_AUTH_LABEL"
-docker_git_upsert_ssh_env "GEMINI_API_KEY" "\${GEMINI_API_KEY:-}"
-docker_git_upsert_ssh_env "GEMINI_CLI_DISABLE_UPDATE_CHECK" "true"
-docker_git_upsert_ssh_env "GEMINI_CLI_NONINTERACTIVE" "true"
-docker_git_upsert_ssh_env "GEMINI_CLI_APPROVAL_MODE" "yolo"`
+spawn_upsert_ssh_env "GEMINI_AUTH_LABEL" "$GEMINI_AUTH_LABEL"
+spawn_upsert_ssh_env "GEMINI_API_KEY" "\${GEMINI_API_KEY:-}"
+spawn_upsert_ssh_env "GEMINI_CLI_DISABLE_UPDATE_CHECK" "true"
+spawn_upsert_ssh_env "GEMINI_CLI_NONINTERACTIVE" "true"
+spawn_upsert_ssh_env "GEMINI_CLI_APPROVAL_MODE" "yolo"`
 
 const entrypointGeminiNoticeTemplate = String.raw`# Ensure global GEMINI.md exists for container context
 GEMINI_MD_PATH="__GEMINI_HOME__/GEMINI.md"
@@ -252,7 +252,7 @@ elif [[ "$REPO_REF" == refs/pull/*/head ]]; then
 fi
 
 cat <<EOF > "$GEMINI_MD_PATH"
-<!-- docker-git-managed:gemini-md -->
+<!-- spawn-managed:gemini-md -->
 Ты автономный агент, который имеет полностью все права управления контейнером. У тебя есть доступ к командам sudo, gh, codex, gemini, claude, opencode, oh-my-opencode, sshpass, git, node, pnpm и всем остальным другим. Проекты с которыми идёт работа лежат по пути ~
 Рабочая папка проекта (git clone): __TARGET_DIR__
 Доступные workspace пути: __TARGET_DIR__
@@ -261,7 +261,7 @@ $GEMINI_WORKSPACE_CONTEXT
 Доступ к интернету: есть. Если чего-то не знаешь — ищи в интернете или по кодовой базе.
 Для решения задач обязательно используй subagents. Сам агент обязан выполнять финальную проверку, интеграцию и валидацию результата перед ответом пользователю.
 Если ты видишь файлы AGENTS.md, GEMINI.md или CLAUDE.md внутри проекта, ты обязан их читать и соблюдать инструкции.
-<!-- /docker-git-managed:gemini-md -->
+<!-- /spawn-managed:gemini-md -->
 EOF
 chown 1000:1000 "$GEMINI_MD_PATH" || true`
 

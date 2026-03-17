@@ -12,8 +12,8 @@ command -v perl >/dev/null || { echo "ERROR: perl is required" >&2; exit 1; }
 
 SECRET_PATTERN='(\b(?:github_pat_|gho_|ghp_|ghu_|ghs_|ghr_|gha_)[A-Za-z0-9_]{20,255}\b|\bsk-(?!ant-)(?:proj-)?[A-Za-z0-9_-]{20,}\b|\bsk-ant-[A-Za-z0-9_-]{20,}\b|-----BEGIN(?: [A-Z0-9]+)* PRIVATE KEY-----)'
 HAS_GITLEAKS=0
-ISSUE_MANAGED_START='<!-- docker-git:issue-managed:start -->'
-ISSUE_MANAGED_END='<!-- docker-git:issue-managed:end -->'
+ISSUE_MANAGED_START='<!-- spawn:issue-managed:start -->'
+ISSUE_MANAGED_END='<!-- spawn:issue-managed:end -->'
 
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -80,7 +80,7 @@ guard_issue_managed_agents_block() {
   fi
 
   if ! cmp -s "$head_block_path" "$staged_block_path"; then
-    echo "ERROR: staged change updates docker-git managed issue block in $path." >&2
+    echo "ERROR: staged change updates spawn managed issue block in $path." >&2
     echo "This runtime context must not be committed into the repository." >&2
     echo "Fix: git restore --staged --worktree -- $path" >&2
     echo "Then re-apply manual edits outside the managed block if needed." >&2

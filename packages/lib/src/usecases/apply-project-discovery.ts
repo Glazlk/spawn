@@ -9,7 +9,7 @@ import { parseGithubRepoUrl } from "../core/repo.js"
 import { runCommandCapture, runCommandExitCode } from "../shell/command-runner.js"
 import { readProjectConfig } from "../shell/config.js"
 import { resolveBaseDir } from "../shell/paths.js"
-import { findDockerGitConfigPaths } from "./docker-git-config-search.js"
+import { findDockerGitConfigPaths } from "./spawn-config-search.js"
 
 export type RepoIdentity = {
   readonly fullPath: string

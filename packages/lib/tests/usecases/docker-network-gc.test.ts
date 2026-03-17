@@ -140,7 +140,7 @@ describe("docker network shared mode", () => {
       const template: SharedTemplate = {
         serviceName: "dg-test",
         dockerNetworkMode: "shared",
-        dockerSharedNetworkName: "docker-git-shared"
+        dockerSharedNetworkName: "spawn-shared"
       }
 
       yield* _(
@@ -154,7 +154,7 @@ describe("docker network shared mode", () => {
           entry.command === "docker" &&
           entry.args[0] === "network" &&
           entry.args[1] === "create" &&
-          entry.args[4] === "docker-git-shared"
+          entry.args[4] === "spawn-shared"
       )
       expect(created).toBe(true)
     }))
@@ -162,11 +162,11 @@ describe("docker network shared mode", () => {
   it.effect("does not create shared network when it already exists", () =>
     Effect.gen(function*(_) {
       const recorded: Array<RecordedCommand> = []
-      const executor = makeFakeExecutor(recorded, ["docker-git-shared"], [])
+      const executor = makeFakeExecutor(recorded, ["spawn-shared"], [])
       const template: SharedTemplate = {
         serviceName: "dg-test",
         dockerNetworkMode: "shared",
-        dockerSharedNetworkName: "docker-git-shared"
+        dockerSharedNetworkName: "spawn-shared"
       }
 
       yield* _(
@@ -196,7 +196,7 @@ describe("docker network shared mode", () => {
       const template: SharedTemplate = {
         serviceName: "dg-test",
         dockerNetworkMode: "shared",
-        dockerSharedNetworkName: "docker-git-shared"
+        dockerSharedNetworkName: "spawn-shared"
       }
 
       yield* _(
@@ -232,7 +232,7 @@ describe("docker network gc", () => {
       const template: ProjectTemplate = {
         serviceName: "dg-test",
         dockerNetworkMode: "project",
-        dockerSharedNetworkName: "docker-git-shared"
+        dockerSharedNetworkName: "spawn-shared"
       }
 
       yield* _(
@@ -258,7 +258,7 @@ describe("docker network gc", () => {
       const template: ProjectTemplate = {
         serviceName: "dg-test",
         dockerNetworkMode: "project",
-        dockerSharedNetworkName: "docker-git-shared"
+        dockerSharedNetworkName: "spawn-shared"
       }
 
       yield* _(

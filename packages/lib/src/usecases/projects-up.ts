@@ -34,7 +34,7 @@ const syncManagedProjectFiles = (
   template: TemplateConfig
 ): Effect.Effect<void, FileExistsError | PlatformError, FileSystem | Path> =>
   Effect.gen(function*(_) {
-    yield* _(Effect.log(`Applying docker-git templates in ${projectDir} before docker compose up...`))
+    yield* _(Effect.log(`Applying spawn templates in ${projectDir} before docker compose up...`))
     yield* _(writeProjectFiles(projectDir, template, true))
     yield* _(ensureCodexConfigFile(projectDir, template.codexAuthPath))
   })
@@ -90,7 +90,7 @@ const ensureClaudeCliReady = (
 
       return pipe(
         Effect.logWarning(
-          `Claude CLI is missing in ${containerName}; running docker-git self-heal.`
+          `Claude CLI is missing in ${containerName}; running spawn self-heal.`
         ),
         Effect.zipRight(
           runDockerExecExitCode(projectDir, containerName, [
@@ -146,7 +146,7 @@ const ensureAvailableSshPort = (
       return config.template
     }
     const reason = reservedPorts.has(config.template.sshPort)
-      ? "already reserved by another docker-git project"
+      ? "already reserved by another spawn project"
       : "already in use"
     yield* _(
       Effect.logWarning(

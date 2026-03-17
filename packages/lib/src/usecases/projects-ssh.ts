@@ -191,7 +191,7 @@ export const connectProjectSshWithUp = (
     yield* _(connectProjectSsh(updated))
   })
 
-// CHANGE: show docker compose status for all known docker-git projects
+// CHANGE: show docker compose status for all known spawn projects
 // WHY: allow checking active containers without switching directories
 // QUOTE(ТЗ): "как посмотреть какие активны?"
 // REF: user-request-2026-01-27-status

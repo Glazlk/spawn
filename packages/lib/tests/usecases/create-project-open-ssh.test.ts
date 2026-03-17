@@ -36,7 +36,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-open-ssh-"
+          prefix: "spawn-open-ssh-"
         })
       )
       return yield* _(use(tempDir))
@@ -45,11 +45,11 @@ const withTempDir = <A, E, R>(
 
 const patchProcessForInteractiveSsh = (projectsRoot: string): Effect.Effect<ProcessPatch, never> =>
   Effect.sync(() => {
-    const prevProjectsRoot = process.env["DOCKER_GIT_PROJECTS_ROOT"]
+    const prevProjectsRoot = process.env["SPAWN_PROJECTS_ROOT"]
     const prevStdinTty = process.stdin.isTTY
     const prevStdoutTty = process.stdout.isTTY
 
-    process.env["DOCKER_GIT_PROJECTS_ROOT"] = projectsRoot
+    process.env["SPAWN_PROJECTS_ROOT"] = projectsRoot
     Object.defineProperty(process.stdin, "isTTY", { value: true, configurable: true })
     Object.defineProperty(process.stdout, "isTTY", { value: true, configurable: true })
 
@@ -59,9 +59,9 @@ const patchProcessForInteractiveSsh = (projectsRoot: string): Effect.Effect<Proc
 const restorePatchedProcess = (patch: ProcessPatch): Effect.Effect<void, never> =>
   Effect.sync(() => {
     if (patch.prevProjectsRoot === undefined) {
-      delete process.env["DOCKER_GIT_PROJECTS_ROOT"]
+      delete process.env["SPAWN_PROJECTS_ROOT"]
     } else {
-      process.env["DOCKER_GIT_PROJECTS_ROOT"] = patch.prevProjectsRoot
+      process.env["SPAWN_PROJECTS_ROOT"] = patch.prevProjectsRoot
     }
     Object.defineProperty(process.stdin, "isTTY", { value: patch.prevStdinTty, configurable: true })
     Object.defineProperty(process.stdout, "isTTY", { value: patch.prevStdoutTty, configurable: true })
@@ -88,10 +88,10 @@ const decideExitCode = (cmd: RecordedCommand): number => {
   }
 
   if (cmd.command === "docker" && cmd.args[0] === "exec") {
-    if (commandIncludes(cmd.args, "/run/docker-git/clone.failed")) {
+    if (commandIncludes(cmd.args, "/run/spawn/clone.failed")) {
       return 1
     }
-    if (commandIncludes(cmd.args, "/run/docker-git/clone.done")) {
+    if (commandIncludes(cmd.args, "/run/spawn/clone.done")) {
       return 0
     }
   }
@@ -151,7 +151,7 @@ const makeCommand = (root: string, outDir: string, path: Path.Path): CreateComma
     repoRef: "main",
     targetDir: "/home/dev/org/repo",
     volumeName: "dg-test-home",
-    dockerGitPath: path.join(root, ".docker-git"),
+    dockerGitPath: path.join(root, ".spawn"),
     authorizedKeysPath: path.join(root, "authorized_keys"),
     envGlobalPath: path.join(root, ".orch/env/global.env"),
     envProjectPath: path.join(root, ".orch/env/project.env"),
@@ -159,7 +159,7 @@ const makeCommand = (root: string, outDir: string, path: Path.Path): CreateComma
     codexSharedAuthPath: path.join(root, ".orch/auth/codex-shared"),
     codexHome: "/home/dev/.codex",
     dockerNetworkMode: "shared",
-    dockerSharedNetworkName: "docker-git-shared",
+    dockerSharedNetworkName: "spawn-shared",
     enableMcpPlaywright: false,
     pnpmVersion: "10.27.0"
   }
@@ -202,7 +202,7 @@ describe("createProject (openSsh)", () => {
         expect(ssh.args).toContain("dev@localhost")
 
         const cloneDoneIndex = recorded.findIndex(
-          (entry) => entry.command === "docker" && entry.args[0] === "exec" && entry.args.includes("/run/docker-git/clone.done")
+          (entry) => entry.command === "docker" && entry.args[0] === "exec" && entry.args.includes("/run/spawn/clone.done")
         )
         const sshIndex = recorded.findIndex((entry) => entry.command === "ssh")
         expect(cloneDoneIndex).toBeGreaterThanOrEqual(0)

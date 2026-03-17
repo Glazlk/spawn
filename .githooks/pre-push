@@ -5,7 +5,7 @@ set -euo pipefail
 # pre-push is a safety net: it prevents pushing commit ranges containing oversized or secret blobs
 # under any nested .knowledge/.knowlenge path.
 
-if [ "${DOCKER_GIT_SKIP_KNOWLEDGE_GUARD:-}" = "1" ]; then
+if [ "${SPAWN_SKIP_KNOWLEDGE_GUARD:-}" = "1" ]; then
   exit 0
 fi
 

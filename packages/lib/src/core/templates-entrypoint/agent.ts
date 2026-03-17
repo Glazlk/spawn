@@ -29,12 +29,12 @@ fi`
 
 const renderAgentSetup = (): string =>
   [
-    String.raw`AGENT_DONE_PATH="/run/docker-git/agent.done"
-AGENT_FAIL_PATH="/run/docker-git/agent.failed"
-AGENT_PROMPT_FILE="/run/docker-git/agent-prompt.txt"
+    String.raw`AGENT_DONE_PATH="/run/spawn/agent.done"
+AGENT_FAIL_PATH="/run/spawn/agent.failed"
+AGENT_PROMPT_FILE="/run/spawn/agent-prompt.txt"
 rm -f "$AGENT_DONE_PATH" "$AGENT_FAIL_PATH" "$AGENT_PROMPT_FILE"`,
     String.raw`# Collect tokens for agent environment (su - dev does not always inherit profile.d)
-AGENT_ENV_FILE="/run/docker-git/agent-env.sh"
+AGENT_ENV_FILE="/run/spawn/agent-env.sh"
 {
   [[ -f /etc/profile.d/gh-token.sh ]] && cat /etc/profile.d/gh-token.sh
   [[ -f /etc/profile.d/claude-config.sh ]] && cat /etc/profile.d/claude-config.sh
@@ -104,24 +104,24 @@ const renderAgentIssueComment = (config: TemplateConfig): string =>
   String.raw`echo "[agent] posting review comment to issue #$ISSUE_NUM..."
 
 PR_BODY=""
-PR_BODY=$(su - ${config.sshUser} -c ". /run/docker-git/agent-env.sh 2>/dev/null; cd '$TARGET_DIR' && gh pr list --head '$REPO_REF' --json body --jq '.[0].body'" 2>/dev/null) || true
+PR_BODY=$(su - ${config.sshUser} -c ". /run/spawn/agent-env.sh 2>/dev/null; cd '$TARGET_DIR' && gh pr list --head '$REPO_REF' --json body --jq '.[0].body'" 2>/dev/null) || true
 
 if [[ -z "$PR_BODY" ]]; then
-  PR_BODY=$(su - ${config.sshUser} -c ". /run/docker-git/agent-env.sh 2>/dev/null; cd '$TARGET_DIR' && git log --format='%B' -1" 2>/dev/null) || true
+  PR_BODY=$(su - ${config.sshUser} -c ". /run/spawn/agent-env.sh 2>/dev/null; cd '$TARGET_DIR' && git log --format='%B' -1" 2>/dev/null) || true
 fi
 
 if [[ -n "$PR_BODY" ]]; then
-  COMMENT_FILE="/run/docker-git/agent-comment.txt"
+  COMMENT_FILE="/run/spawn/agent-comment.txt"
   printf "%s" "$PR_BODY" > "$COMMENT_FILE"
   chmod 644 "$COMMENT_FILE"
-  su - ${config.sshUser} -c ". /run/docker-git/agent-env.sh 2>/dev/null; cd '$TARGET_DIR' && gh issue comment '$ISSUE_NUM' --body-file '$COMMENT_FILE'" || echo "[agent] failed to comment on issue #$ISSUE_NUM"
+  su - ${config.sshUser} -c ". /run/spawn/agent-env.sh 2>/dev/null; cd '$TARGET_DIR' && gh issue comment '$ISSUE_NUM' --body-file '$COMMENT_FILE'" || echo "[agent] failed to comment on issue #$ISSUE_NUM"
 else
   echo "[agent] no PR body or commit message found, skipping comment"
 fi`
 
 const renderProjectMoveScript = (): string =>
   String.raw`#!/bin/bash
-. /run/docker-git/agent-env.sh 2>/dev/null || true
+. /run/spawn/agent-env.sh 2>/dev/null || true
 cd "$1" || exit 1
 ISSUE_NUM="$2"
 
@@ -166,7 +166,7 @@ fi`
 const renderAgentIssueMove = (config: TemplateConfig): string =>
   [
     String.raw`echo "[agent] moving issue #$ISSUE_NUM to review..."
-MOVE_SCRIPT="/run/docker-git/project-move.sh"`,
+MOVE_SCRIPT="/run/spawn/project-move.sh"`,
     String.raw`cat > "$MOVE_SCRIPT" << 'EOFMOVE'
 ${renderProjectMoveScript()}
 EOFMOVE`,

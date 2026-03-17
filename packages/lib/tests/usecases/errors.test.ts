@@ -32,6 +32,6 @@ describe("renderError", () => {
     const message = renderError(new ScrapArchiveNotFoundError({ path: "/tmp/workspace.tar.gz" }))
 
     expect(message).toContain("Scrap archive not found")
-    expect(message).toContain("docker-git scrap export")
+    expect(message).toContain("spawn scrap export")
   })
 })

@@ -3,15 +3,15 @@ services:
     build:
       context: .
       dockerfile: packages/api/Dockerfile
-    container_name: docker-git-api
+    container_name: spawn-api
     environment:
-      DOCKER_GIT_API_PORT: ${DOCKER_GIT_API_PORT:-3334}
-      DOCKER_GIT_PROJECTS_ROOT: ${DOCKER_GIT_PROJECTS_ROOT:-/home/dev/.docker-git}
-      DOCKER_GIT_FEDERATION_PUBLIC_ORIGIN: ${DOCKER_GIT_FEDERATION_PUBLIC_ORIGIN:-}
-      DOCKER_GIT_FEDERATION_ACTOR: ${DOCKER_GIT_FEDERATION_ACTOR:-docker-git}
+      SPAWN_API_PORT: ${SPAWN_API_PORT:-3334}
+      SPAWN_PROJECTS_ROOT: ${SPAWN_PROJECTS_ROOT:-/home/dev/.spawn}
+      SPAWN_FEDERATION_PUBLIC_ORIGIN: ${SPAWN_FEDERATION_PUBLIC_ORIGIN:-}
+      SPAWN_FEDERATION_ACTOR: ${SPAWN_FEDERATION_ACTOR:-spawn}
     ports:
-      - "${DOCKER_GIT_API_BIND_HOST:-127.0.0.1}:${DOCKER_GIT_API_PORT:-3334}:${DOCKER_GIT_API_PORT:-3334}"
+      - "${SPAWN_API_BIND_HOST:-127.0.0.1}:${SPAWN_API_PORT:-3334}:${SPAWN_API_PORT:-3334}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${DOCKER_GIT_PROJECTS_ROOT_HOST:-/home/dev/.docker-git}:${DOCKER_GIT_PROJECTS_ROOT:-/home/dev/.docker-git}
+      - ${SPAWN_PROJECTS_ROOT_HOST:-/home/dev/.spawn}:${SPAWN_PROJECTS_ROOT:-/home/dev/.spawn}
     restart: unless-stopped

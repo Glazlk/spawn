@@ -5,10 +5,10 @@ RUN_ID="$(date +%s)-$RANDOM"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$REPO_ROOT/scripts/e2e/_lib.sh"
-ROOT_BASE="${DOCKER_GIT_E2E_ROOT_BASE:-$REPO_ROOT/.docker-git/e2e-root}"
+ROOT_BASE="${SPAWN_E2E_ROOT_BASE:-$REPO_ROOT/.spawn/e2e-root}"
 mkdir -p "$ROOT_BASE"
 ROOT="$(mktemp -d "$ROOT_BASE/clone-cache.XXXXXX")"
-# docker-git containers may `chown -R` the `.docker-git` bind mount to UID 1000.
+# spawn containers may `chown -R` the `.spawn` bind mount to UID 1000.
 # Keep host-side e2e workspace writable for cleanup and assertions.
 chmod 0777 "$ROOT"
 mkdir -p "$ROOT/e2e"
@@ -17,12 +17,12 @@ KEEP="${KEEP:-0}"
 
 dg_ensure_docker "$ROOT/.e2e-bin"
 
-export DOCKER_GIT_PROJECTS_ROOT="$ROOT"
-export DOCKER_GIT_STATE_AUTO_SYNC=0
+export SPAWN_PROJECTS_ROOT="$ROOT"
+export SPAWN_STATE_AUTO_SYNC=0
 
 REPO_URL="https://github.com/octocat/Hello-World/issues/1"
 TARGET_DIR="/home/dev/workspaces/octocat/hello-world/issue-1"
-MIRROR_PREFIX="/home/dev/.docker-git/.cache/git-mirrors"
+MIRROR_PREFIX="/home/dev/.spawn/.cache/git-mirrors"
 
 ACTIVE_OUT_DIR=""
 ACTIVE_CONTAINER=""
@@ -71,11 +71,11 @@ wait_for_clone_completion() {
   local attempt=1
 
   while [[ "$attempt" -le "$attempts" ]]; do
-    if docker exec "$container" test -f /run/docker-git/clone.done >/dev/null 2>&1; then
+    if docker exec "$container" test -f /run/spawn/clone.done >/dev/null 2>&1; then
       return 0
     fi
 
-    if docker exec "$container" test -f /run/docker-git/clone.failed >/dev/null 2>&1; then
+    if docker exec "$container" test -f /run/spawn/clone.failed >/dev/null 2>&1; then
       docker logs "$container" >&2 || true
       fail "clone failed marker found for container: $container"
     fi
@@ -92,7 +92,7 @@ run_clone_case() {
   local case_name="$1"
   local expect_cache_use="$2"
   local expected_mirror_name="${3:-}"
-  local out_dir_rel=".docker-git/e2e/clone-cache-${case_name}-${RUN_ID}"
+  local out_dir_rel=".spawn/e2e/clone-cache-${case_name}-${RUN_ID}"
   local out_dir="$ROOT/e2e/clone-cache-${case_name}-${RUN_ID}"
   local container_name="dg-e2e-cache-${case_name}-${RUN_ID}"
   local service_name="dg-e2e-cache-${case_name}-${RUN_ID}"
@@ -103,7 +103,7 @@ run_clone_case() {
   mkdir -p "$out_dir/.orch/env"
   chmod 0777 "$out_dir" "$out_dir/.orch" "$out_dir/.orch/env"
   cat > "$out_dir/.orch/env/project.env" <<'EOF_ENV'
-# docker-git project env (e2e)
+# spawn project env (e2e)
 CODEX_AUTO_UPDATE=0
 CODEX_SHARE_AUTH=1
 EOF_ENV
@@ -113,7 +113,7 @@ EOF_ENV
 
   (
     cd "$REPO_ROOT"
-    pnpm run docker-git clone "$REPO_URL" \
+    pnpm run spawn clone "$REPO_URL" \
       --force \
       --no-ssh \
       --authorized-keys "$ROOT/authorized_keys" \

@@ -124,11 +124,11 @@ const readCreateFollowRequest = () => HttpServerRequest.schemaBodyJson(CreateFol
 const readInboxPayload = () => HttpServerRequest.schemaBodyJson(Schema.Unknown)
 
 const configuredFederationPublicOrigin =
-  process.env["DOCKER_GIT_FEDERATION_PUBLIC_ORIGIN"] ??
-  process.env["DOCKER_GIT_API_PUBLIC_URL"]
+  process.env["SPAWN_FEDERATION_PUBLIC_ORIGIN"] ??
+  process.env["SPAWN_API_PUBLIC_URL"]
 
 const configuredFederationActorUsername =
-  process.env["DOCKER_GIT_FEDERATION_ACTOR"] ?? "docker-git"
+  process.env["SPAWN_FEDERATION_ACTOR"] ?? "spawn"
 
 const readHeader = (
   request: HttpServerRequest.HttpServerRequest,

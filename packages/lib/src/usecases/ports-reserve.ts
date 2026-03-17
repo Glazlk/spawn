@@ -61,7 +61,7 @@ const loadPublishedDockerPorts = (): Effect.Effect<ReadonlySet<number>, never, C
     )
   )
 
-// CHANGE: collect SSH ports currently occupied by existing docker-git projects
+// CHANGE: collect SSH ports currently occupied by existing spawn projects
 // WHY: avoid port collisions while allowing reuse of ports from stopped projects
 // QUOTE(ТЗ): "для каждого докера брать должен свой порт"
 // REF: user-request-2026-02-05-port-reserve

@@ -17,8 +17,8 @@ import { withFsPathContext } from "./runtime.js"
 export type GeminiRuntime = FileSystem.FileSystem | Path.Path | CommandExecutor.CommandExecutor
 export type GeminiAuthMethod = "none" | "api-key" | "oauth"
 
-export const geminiImageName = "docker-git-auth-gemini:latest"
-export const geminiImageDir = ".docker-git/.orch/auth/gemini/.image"
+export const geminiImageName = "spawn-auth-gemini:latest"
+export const geminiImageDir = ".spawn/.orch/auth/gemini/.image"
 export const geminiContainerHomeDir = "/gemini-home"
 export const geminiCredentialsDir = ".gemini"
 
@@ -29,7 +29,7 @@ export type GeminiAccountContext = {
   readonly fs: FileSystem.FileSystem
 }
 
-export const geminiAuthRoot = ".docker-git/.orch/auth/gemini"
+export const geminiAuthRoot = ".spawn/.orch/auth/gemini"
 
 export const geminiApiKeyFileName = ".api-key"
 export const geminiEnvFileName = ".env"
@@ -66,9 +66,9 @@ export const ensureGeminiOrchLayout = (
     envGlobalPath: defaultTemplateConfig.envGlobalPath,
     envProjectPath: defaultTemplateConfig.envProjectPath,
     codexAuthPath: defaultTemplateConfig.codexAuthPath,
-    ghAuthPath: ".docker-git/.orch/auth/gh",
-    claudeAuthPath: ".docker-git/.orch/auth/claude",
-    geminiAuthPath: ".docker-git/.orch/auth/gemini"
+    ghAuthPath: ".spawn/.orch/auth/gh",
+    claudeAuthPath: ".spawn/.orch/auth/claude",
+    geminiAuthPath: ".spawn/.orch/auth/gemini"
   })
 
 export const resolveGeminiAccountPath = (path: Path.Path, rootPath: string, label: string | null): {
@@ -287,7 +287,7 @@ export const defaultGeminiSettings = {
   },
   mcpServers: {
     playwright: {
-      command: "docker-git-playwright-mcp",
+      command: "spawn-playwright-mcp",
       args: [],
       trust: true
     }

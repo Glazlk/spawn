@@ -6,16 +6,16 @@ import { Effect } from "effect"
 import type { TemplateConfig } from "../core/domain.js"
 import { readProjectConfig } from "../shell/config.js"
 import { writeProjectFiles } from "../shell/files.js"
-import { findDockerGitConfigPaths } from "./docker-git-config-search.js"
+import { findDockerGitConfigPaths } from "./spawn-config-search.js"
 
 const toPosixPath = (value: string): string => value.replaceAll("\\", "/")
 
 const isLegacyDockerGitRelativePath = (value: string): boolean => {
   const normalized = value.replaceAll("\\", "/").trim()
-  return normalized === ".docker-git" ||
-    normalized === "./.docker-git" ||
-    normalized.startsWith(".docker-git/") ||
-    normalized.startsWith("./.docker-git/")
+  return normalized === ".spawn" ||
+    normalized === "./.spawn" ||
+    normalized.startsWith(".spawn/") ||
+    normalized.startsWith("./.spawn/")
 }
 
 const shouldNormalizePath = (path: Path.Path, value: string): boolean =>
@@ -58,7 +58,7 @@ const normalizeTemplateConfig = (
 
   return {
     ...template,
-    dockerGitPath: withFallback(dockerGitRel, "./.docker-git"),
+    dockerGitPath: withFallback(dockerGitRel, "./.spawn"),
     authorizedKeysPath: withFallback(authorizedKeysRel, "./authorized_keys"),
     envGlobalPath,
     envProjectPath,
@@ -67,7 +67,7 @@ const normalizeTemplateConfig = (
   }
 }
 
-// CHANGE: normalize legacy docker-git project files inside the git-synced state repo
+// CHANGE: normalize legacy spawn project files inside the git-synced state repo
 // WHY: state is stored in git and must be portable across machines/OSes (no absolute host paths)
 // QUOTE(ТЗ): "в них не должно быть зарадкожено полных путей типо /home/dev" / "контейнеры должны одинаково ставится на разные ОС"
 // REF: user-request-2026-02-09-state-normalize-paths
@@ -126,6 +126,6 @@ export const normalizeLegacyStateProjects = (
     }
 
     if (updated > 0) {
-      yield* _(Effect.log(`Normalized ${updated} docker-git project(s) in state repo.`))
+      yield* _(Effect.log(`Normalized ${updated} spawn project(s) in state repo.`))
     }
   }).pipe(Effect.asVoid)

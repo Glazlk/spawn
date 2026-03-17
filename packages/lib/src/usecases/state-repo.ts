@@ -57,7 +57,7 @@ export const stateSync = (
     const repoExit = yield* _(gitExitCode(root, ["rev-parse", "--is-inside-work-tree"], gitBaseEnv))
     if (repoExit !== successExitCode) {
       yield* _(Effect.logWarning(`State dir is not a git repository: ${root}`))
-      yield* _(Effect.logWarning(`Run: docker-git state init --repo-url <url>`))
+      yield* _(Effect.logWarning(`Run: spawn state init --repo-url <url>`))
       return yield* _(
         Effect.fail(new CommandFailedError({ command: "git rev-parse --is-inside-work-tree", exitCode: repoExit }))
       )
@@ -68,7 +68,7 @@ export const stateSync = (
     const originUrlExit = yield* _(gitExitCode(root, ["remote", "get-url", "origin"], gitBaseEnv))
     if (originUrlExit !== successExitCode) {
       yield* _(Effect.logWarning(`State dir has no origin remote: ${root}`))
-      yield* _(Effect.logWarning(`Run: docker-git state init --repo-url <url>`))
+      yield* _(Effect.logWarning(`Run: spawn state init --repo-url <url>`))
       return yield* _(
         Effect.fail(new CommandFailedError({ command: "git remote get-url origin", exitCode: originUrlExit }))
       )

@@ -8,7 +8,7 @@ import { initializeAgentState } from "./services/agents.js"
 import { startOutboxPolling } from "./services/federation.js"
 
 const resolvePort = (env: Record<string, string | undefined>): number => {
-  const raw = env["DOCKER_GIT_API_PORT"] ?? env["PORT"]
+  const raw = env["SPAWN_API_PORT"] ?? env["PORT"]
   const parsed = raw === undefined ? Number.NaN : Number(raw)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 3334
 }
@@ -44,13 +44,13 @@ export const program = (() => {
   const server = createServer()
   const serverLayer = NodeHttpServer.layer(() => server, { port })
   
-  const pollingInterval = parseInt(process.env["DOCKER_GIT_OUTBOX_POLLING_INTERVAL_MS"] ?? "5000", 10)
+  const pollingInterval = parseInt(process.env["SPAWN_OUTBOX_POLLING_INTERVAL_MS"] ?? "5000", 10)
 
   return Effect.scoped(
-    Console.log(`docker-git api boot port=${port}`).pipe(
+    Console.log(`spawn api boot port=${port}`).pipe(
       Effect.zipRight(initializeAgentState()),
       Effect.zipRight(
-        Console.log(`docker-git outbox polling interval=${pollingInterval}ms`)
+        Console.log(`spawn outbox polling interval=${pollingInterval}ms`)
       ),
       Effect.zipRight(
         Effect.fork(startOutboxPolling(pollingInterval))

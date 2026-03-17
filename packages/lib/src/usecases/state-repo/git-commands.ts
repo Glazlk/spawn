@@ -13,10 +13,10 @@ export const gitBaseEnv: Readonly<Record<string, string>> = {
   // Avoid SSH hanging on host key prompts or passphrases
   GIT_SSH_COMMAND: "ssh -o BatchMode=yes",
   // Ensure git commits never fail due to missing identity.
-  GIT_AUTHOR_NAME: "docker-git",
-  GIT_AUTHOR_EMAIL: "docker-git@users.noreply.github.com",
-  GIT_COMMITTER_NAME: "docker-git",
-  GIT_COMMITTER_EMAIL: "docker-git@users.noreply.github.com"
+  GIT_AUTHOR_NAME: "spawn",
+  GIT_AUTHOR_EMAIL: "spawn@users.noreply.github.com",
+  GIT_COMMITTER_NAME: "spawn",
+  GIT_COMMITTER_EMAIL: "spawn@users.noreply.github.com"
 }
 
 export const git = (

@@ -4,7 +4,7 @@ import { NodeContext } from "@effect/platform-node"
 import { describe, expect, it } from "@effect/vitest"
 import { Effect } from "effect"
 
-import { findDockerGitConfigPaths } from "../../src/usecases/docker-git-config-search.js"
+import { findDockerGitConfigPaths } from "../../src/usecases/spawn-config-search.js"
 
 const withTempDir = <A, E, R>(
   use: (tempDir: string) => Effect.Effect<A, E, R>
@@ -14,7 +14,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-config-search-"
+          prefix: "spawn-config-search-"
         })
       )
       return yield* _(use(tempDir))
@@ -33,17 +33,17 @@ const writeFileWithParents = (
   })
 
 describe("findDockerGitConfigPaths", () => {
-  it.effect("skips metadata and shared docker-git cache directories", () =>
+  it.effect("skips metadata and shared spawn cache directories", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
         const path = yield* _(Path.Path)
-        const includedMain = path.join(root, "org/repo-a/docker-git.json")
-        const includedNested = path.join(root, "org/repo-b/nested/docker-git.json")
-        const ignoredGit = path.join(root, "org/repo-a/.git/docker-git.json")
-        const ignoredOrch = path.join(root, "org/repo-a/.orch/docker-git.json")
-        const ignoredRootCache = path.join(root, ".cache/packages/pnpm/store/v10/index/docker-git.json")
-        const ignoredDockerGit = path.join(root, ".docker-git/.cache/git-mirrors/docker-git.json")
+        const includedMain = path.join(root, "org/repo-a/spawn.json")
+        const includedNested = path.join(root, "org/repo-b/nested/spawn.json")
+        const ignoredGit = path.join(root, "org/repo-a/.git/spawn.json")
+        const ignoredOrch = path.join(root, "org/repo-a/.orch/spawn.json")
+        const ignoredRootCache = path.join(root, ".cache/packages/pnpm/store/v10/index/spawn.json")
+        const ignoredDockerGit = path.join(root, ".spawn/.cache/git-mirrors/spawn.json")
 
         yield* _(writeFileWithParents(fs, path, includedMain))
         yield* _(writeFileWithParents(fs, path, includedNested))
@@ -62,7 +62,7 @@ describe("findDockerGitConfigPaths", () => {
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
         const path = yield* _(Path.Path)
-        const includedMain = path.join(root, "org/repo-a/docker-git.json")
+        const includedMain = path.join(root, "org/repo-a/spawn.json")
         const brokenLink = path.join(root, "org/repo-a/broken-link")
         const missingTarget = path.join(root, "org/repo-a/missing-target")
 

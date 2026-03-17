@@ -81,7 +81,7 @@ const resolveCreateConfig = (
 
 const logCreatedProject = (resolvedOutDir: string, createdFiles: ReadonlyArray<string>) =>
   Effect.gen(function*(_) {
-    yield* _(Effect.log(`Created docker-git project in ${resolvedOutDir}`))
+    yield* _(Effect.log(`Created spawn project in ${resolvedOutDir}`))
     for (const file of createdFiles) {
       yield* _(Effect.log(`  - ${file}`))
     }

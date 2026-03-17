@@ -14,7 +14,7 @@ const withTempDir = <A, E, R>(
       const fs = yield* _(FileSystem.FileSystem)
       const tempDir = yield* _(
         fs.makeTempDirectoryScoped({
-          prefix: "docker-git-path-helpers-"
+          prefix: "spawn-path-helpers-"
         })
       )
       return yield* _(use(tempDir))
@@ -52,7 +52,7 @@ const withPatchedEnv = <A, E, R>(
   )
 
 describe("path helpers", () => {
-  it.effect("prefers the docker-git projects root public key over generic ~/.ssh keys", () =>
+  it.effect("prefers the spawn projects root public key over generic ~/.ssh keys", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
@@ -66,16 +66,16 @@ describe("path helpers", () => {
         yield* _(fs.makeDirectory(path.dirname(dockerGitKey), { recursive: true }))
         yield* _(fs.makeDirectory(path.dirname(sshFallback), { recursive: true }))
         yield* _(fs.makeDirectory(workspaceDir, { recursive: true }))
-        yield* _(fs.writeFileString(dockerGitKey, "docker-git-public-key\n"))
+        yield* _(fs.writeFileString(dockerGitKey, "spawn-public-key\n"))
         yield* _(fs.writeFileString(sshFallback, "generic-public-key\n"))
 
         const found = yield* _(
           withPatchedEnv(
             {
               HOME: homeDir,
-              DOCKER_GIT_PROJECTS_ROOT: projectsRoot,
-              DOCKER_GIT_AUTHORIZED_KEYS: undefined,
-              DOCKER_GIT_SSH_KEY: undefined
+              SPAWN_PROJECTS_ROOT: projectsRoot,
+              SPAWN_AUTHORIZED_KEYS: undefined,
+              SPAWN_SSH_KEY: undefined
             },
             findAuthorizedKeysSource(fs, path, workspaceDir)
           )
@@ -85,7 +85,7 @@ describe("path helpers", () => {
       })
     ).pipe(Effect.provide(NodeContext.layer)))
 
-  it.effect("prefers the docker-git projects root private key over generic ~/.ssh keys", () =>
+  it.effect("prefers the spawn projects root private key over generic ~/.ssh keys", () =>
     withTempDir((root) =>
       Effect.gen(function*(_) {
         const fs = yield* _(FileSystem.FileSystem)
@@ -99,16 +99,16 @@ describe("path helpers", () => {
         yield* _(fs.makeDirectory(path.dirname(dockerGitKey), { recursive: true }))
         yield* _(fs.makeDirectory(path.dirname(sshFallback), { recursive: true }))
         yield* _(fs.makeDirectory(workspaceDir, { recursive: true }))
-        yield* _(fs.writeFileString(dockerGitKey, "docker-git-private-key\n"))
+        yield* _(fs.writeFileString(dockerGitKey, "spawn-private-key\n"))
         yield* _(fs.writeFileString(sshFallback, "generic-private-key\n"))
 
         const found = yield* _(
           withPatchedEnv(
             {
               HOME: homeDir,
-              DOCKER_GIT_PROJECTS_ROOT: projectsRoot,
-              DOCKER_GIT_AUTHORIZED_KEYS: undefined,
-              DOCKER_GIT_SSH_KEY: undefined
+              SPAWN_PROJECTS_ROOT: projectsRoot,
+              SPAWN_AUTHORIZED_KEYS: undefined,
+              SPAWN_SSH_KEY: undefined
             },
             findSshPrivateKey(fs, path, workspaceDir)
           )

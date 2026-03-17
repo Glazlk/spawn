@@ -333,13 +333,13 @@ export const uiHtml = `<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>docker-git API Console</title>
+    <title>spawn API Console</title>
     <link rel="stylesheet" href="/ui/styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <section class="hero">
-        <h1>docker-git API Console</h1>
+        <h1>spawn API Console</h1>
         <p>UI-обвязка для тестирования v1 API без CLI</p>
       </section>
 

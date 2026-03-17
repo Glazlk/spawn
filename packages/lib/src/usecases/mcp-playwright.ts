@@ -27,7 +27,7 @@ const enableInTemplate = (template: TemplateConfig): TemplateConfig => ({
   enableMcpPlaywright: true
 })
 
-// CHANGE: enable Playwright MCP in an existing docker-git project directory (files only)
+// CHANGE: enable Playwright MCP in an existing spawn project directory (files only)
 // WHY: allow adding the browser sidecar + MCP server config without wiping env or volumes
 // QUOTE(ТЗ): "Добавить возможность поднимать MCP Playrgiht в контейнере который уже создан"
 // REF: issue-29
@@ -35,7 +35,7 @@ const enableInTemplate = (template: TemplateConfig): TemplateConfig => ({
 // FORMAT THEOREM: forall p: enable(p) -> template(p).enableMcpPlaywright = true
 // PURITY: SHELL
 // EFFECT: Effect<TemplateConfig, ConfigNotFoundError | ConfigDecodeError | FileExistsError | PlatformError, FileSystem | Path>
-// INVARIANT: does not rewrite .orch/env/project.env (only managed templates + docker-git.json)
+// INVARIANT: does not rewrite .orch/env/project.env (only managed templates + spawn.json)
 // COMPLEXITY: O(n) where n = |managed_files|
 export const enableMcpPlaywrightProjectFiles = (
   projectDir: string

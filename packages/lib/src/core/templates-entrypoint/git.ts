@@ -52,9 +52,9 @@ if [[ -n "$EFFECTIVE_GH_TOKEN" ]]; then
   printf "export GITHUB_TOKEN=%q\n" "$EFFECTIVE_GITHUB_TOKEN" >> /etc/profile.d/gh-token.sh
   printf "export GIT_AUTH_TOKEN=%q\n" "$EFFECTIVE_GITHUB_TOKEN" >> /etc/profile.d/gh-token.sh
   chmod 0644 /etc/profile.d/gh-token.sh
-  docker_git_upsert_ssh_env "GH_TOKEN" "$EFFECTIVE_GH_TOKEN"
-  docker_git_upsert_ssh_env "GITHUB_TOKEN" "$EFFECTIVE_GITHUB_TOKEN"
-  docker_git_upsert_ssh_env "GIT_AUTH_TOKEN" "$EFFECTIVE_GITHUB_TOKEN"
+  spawn_upsert_ssh_env "GH_TOKEN" "$EFFECTIVE_GH_TOKEN"
+  spawn_upsert_ssh_env "GITHUB_TOKEN" "$EFFECTIVE_GITHUB_TOKEN"
+  spawn_upsert_ssh_env "GIT_AUTH_TOKEN" "$EFFECTIVE_GITHUB_TOKEN"
 
   SAFE_GH_TOKEN="$(printf "%q" "$EFFECTIVE_GH_TOKEN")"
   # Keep git+https auth in sync with gh auth so push/pull works without manual setup.
@@ -82,7 +82,7 @@ const renderEntrypointAuthEnvBridge = (config: TemplateConfig): string =>
 
 const renderEntrypointGitCredentialHelper = (config: TemplateConfig): string =>
   String.raw`# 3) Configure git credential helper for HTTPS remotes
-GIT_CREDENTIAL_HELPER_PATH="/usr/local/bin/docker-git-credential-helper"
+GIT_CREDENTIAL_HELPER_PATH="/usr/local/bin/spawn-credential-helper"
 cat <<'EOF' > "$GIT_CREDENTIAL_HELPER_PATH"
 #!/usr/bin/env bash
 set -euo pipefail
@@ -127,7 +127,7 @@ export const renderEntrypointGitConfig = (config: TemplateConfig): string =>
 
 const entrypointGitHooksTemplate = String
   .raw`# 3) Install global git hooks to protect main/master + managed AGENTS context
-HOOKS_DIR="/opt/docker-git/hooks"
+HOOKS_DIR="/opt/spawn/hooks"
 PRE_PUSH_HOOK="$HOOKS_DIR/pre-push"
 mkdir -p "$HOOKS_DIR"
 
@@ -136,10 +136,10 @@ cat <<'EOF' > "$PRE_PUSH_HOOK"
 set -euo pipefail
 
 protected_branches=("refs/heads/main" "refs/heads/master")
-allow_delete="${"${"}DOCKER_GIT_ALLOW_DELETE:-}"
+allow_delete="${"${"}SPAWN_ALLOW_DELETE:-}"
 zero_sha="0000000000000000000000000000000000000000"
-issue_managed_start='<!-- docker-git:issue-managed:start -->'
-issue_managed_end='<!-- docker-git:issue-managed:end -->'
+issue_managed_start='<!-- spawn:issue-managed:start -->'
+issue_managed_end='<!-- spawn:issue-managed:end -->'
 
 extract_issue_block() {
   local ref="$1"
@@ -218,13 +218,13 @@ check_issue_managed_block_range() {
     commit_changes_issue_block "$commit"
     guard_status=$?
     if [[ "$guard_status" -eq 0 ]]; then
-      echo "docker-git: push contains commit updating managed issue block in AGENTS.md: $commit"
-      echo "docker-git: this block is runtime context and must stay outside repository history."
+      echo "spawn: push contains commit updating managed issue block in AGENTS.md: $commit"
+      echo "spawn: this block is runtime context and must stay outside repository history."
       return 1
     fi
     if [[ "$guard_status" -eq 2 ]]; then
-      echo "docker-git: failed to parse managed issue block in AGENTS.md for commit $commit"
-      echo "docker-git: push blocked to prevent committing runtime workspace metadata."
+      echo "spawn: failed to parse managed issue block in AGENTS.md for commit $commit"
+      echo "spawn: push blocked to prevent committing runtime workspace metadata."
       return 1
     fi
   done
@@ -238,8 +238,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   fi
   for protected in "${"${"}protected_branches[@]}"; do
     if [[ "$remote_ref" == "$protected" || "$local_ref" == "$protected" ]]; then
-      echo "docker-git: push to protected branch '${"${"}protected##*/}' is disabled."
-      echo "docker-git: create a new branch: git checkout -b <name>"
+      echo "spawn: push to protected branch '${"${"}protected##*/}' is disabled."
+      echo "spawn: create a new branch: git checkout -b <name>"
       exit 1
     fi
   done
@@ -248,7 +248,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   fi
   if [[ "$local_sha" == "$zero_sha" && "$remote_ref" == refs/heads/* ]]; then
     if [[ "$allow_delete" != "1" ]]; then
-      echo "docker-git: deleting remote branches is disabled (set DOCKER_GIT_ALLOW_DELETE=1 to override)."
+      echo "spawn: deleting remote branches is disabled (set SPAWN_ALLOW_DELETE=1 to override)."
       exit 1
     fi
   fi

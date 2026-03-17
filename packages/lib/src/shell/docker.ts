@@ -483,7 +483,7 @@ export const runDockerNetworkRemove = (
   )
 
 // CHANGE: list names of running Docker containers
-// WHY: support TUI filtering (e.g. stop only running docker-git containers)
+// WHY: support TUI filtering (e.g. stop only running spawn containers)
 // QUOTE(ТЗ): "Если я выбираю остановку контейнера значит он мне должен показывать контейнеры которые запущены"
 // REF: user-request-2026-02-07-stop-only-running
 // SOURCE: n/a
