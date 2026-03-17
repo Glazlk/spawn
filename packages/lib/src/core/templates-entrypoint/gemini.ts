@@ -166,11 +166,9 @@ GEMINI_CONFIG_SETTINGS_FILE="$GEMINI_SETTINGS_DIR/settings.json"
 mkdir -p "$GEMINI_SETTINGS_DIR" || true
 
 # Disable folder trust prompt and enable auto-approval in settings.json
-if [[ ! -f "$GEMINI_CONFIG_SETTINGS_FILE" ]]; then
-  cat <<'EOF' > "$GEMINI_CONFIG_SETTINGS_FILE"
+cat <<'EOF' > "$GEMINI_CONFIG_SETTINGS_FILE"
 ${geminiSettingsJsonTemplate}
 EOF
-fi
 
 # Pre-trust important directories in trustedFolders.json
 # Use flat mapping as required by recent Gemini CLI versions
