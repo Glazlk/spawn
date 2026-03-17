@@ -1,6 +1,6 @@
-<a href="https://github.com/glazlk/spawn">
-  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/banner.svg" width="100%" alt="spawn — disposable dev environments with AI agents" />
-</a>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/logo.svg" width="280" alt="spawn" />
+</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@spawn-dev/spawn"><img src="https://img.shields.io/npm/v/@spawn-dev/spawn?color=E8521A&labelColor=0D0C0A&label=npm&style=flat-square" alt="npm" /></a>
