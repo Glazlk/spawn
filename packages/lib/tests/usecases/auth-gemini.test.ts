@@ -58,7 +58,7 @@ describe("authGeminiLogin", () => {
         const settingsContent = yield* _(fs.readFileString(settingsPath))
         const settings = JSON.parse(settingsContent)
 
-        expect(settings.model.name).toBe("gemini-3.1-pro-preview-yolo")
+        expect(settings.model.name).toBe("gemini-3.1-pro-preview")
         expect(settings.modelConfigs.customAliases["yolo-ultra"]).toBeDefined()
         expect(settings.general.defaultApprovalMode).toBe("auto_edit")
         expect(settings.mcpServers.playwright.command).toBe("docker-git-playwright-mcp")

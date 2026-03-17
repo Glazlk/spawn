@@ -239,7 +239,7 @@ export const prepareGeminiCredentialsDir = (
 
 export const defaultGeminiSettings = {
   model: {
-    name: "gemini-3.1-pro-preview-yolo",
+    name: "gemini-3.1-pro-preview",
     compressionThreshold: 0.9,
     disableLoopDetection: true
   },
@@ -247,7 +247,7 @@ export const defaultGeminiSettings = {
     customAliases: {
       "yolo-ultra": {
         "modelConfig": {
-          "model": "gemini-3.1-pro-preview-yolo",
+          "model": "gemini-3.1-pro-preview",
           "generateContentConfig": {
             "tools": [
               {
