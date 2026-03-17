@@ -1,27 +1,15 @@
-<!-- HERO -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/logo.svg" width="200" alt="spawn logo" />
-</p>
-
-<h1 align="center">
-  <code>spawn</code>
-</h1>
+<a href="https://github.com/glazlk/spawn">
+  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/banner.svg" width="100%" alt="spawn — disposable dev environments with AI agents" />
+</a>
 
 <p align="center">
-  <strong><code>spawn(task) → isolated env + AI agent → PR. No config. No babysitting.</code></strong>
+  <a href="https://www.npmjs.com/package/@spawn-dev/spawn"><img src="https://img.shields.io/npm/v/@spawn-dev/spawn?color=E8521A&labelColor=0D0C0A&label=npm&style=flat-square" alt="npm" /></a>
+  <a href="https://github.com/glazlk/spawn/blob/main/LICENSE"><img src="https://img.shields.io/github/license/glazlk/spawn?color=E8521A&labelColor=0D0C0A&style=flat-square" alt="license" /></a>
+  <a href="https://github.com/glazlk/spawn/stargazers"><img src="https://img.shields.io/github/stars/glazlk/spawn?color=E8521A&labelColor=0D0C0A&style=flat-square" alt="stars" /></a>
+  <a href="https://github.com/glazlk/spawn/issues"><img src="https://img.shields.io/github/issues/glazlk/spawn?color=E8521A&labelColor=0D0C0A&style=flat-square" alt="issues" /></a>
 </p>
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/@spawn-dev/spawn"><img src="https://img.shields.io/npm/v/@spawn-dev/spawn?color=E8521A&labelColor=080806&label=npm&style=flat-square" alt="npm" /></a>
-  <a href="https://github.com/glazlk/spawn/blob/main/LICENSE"><img src="https://img.shields.io/github/license/glazlk/spawn?color=E8521A&labelColor=080806&style=flat-square" alt="license" /></a>
-  <a href="https://github.com/glazlk/spawn/stargazers"><img src="https://img.shields.io/github/stars/glazlk/spawn?color=E8521A&labelColor=080806&style=flat-square" alt="stars" /></a>
-</p>
-
-<p align="center">
-  <em>Don't configure. Spawn.</em>
-</p>
-
----
+<br/>
 
 ## What is spawn?
 
@@ -31,7 +19,7 @@
 spawn(task) → isolated container + AI agent → opens PR → container exits.
 ```
 
-Environments are **mortal**. Code is not.
+> Environments are **mortal**. Code is not.
 
 ---
 
@@ -55,13 +43,17 @@ spawn clone https://github.com/org/repo/issues/42 --auto
 
 ## How It Works
 
+```
+AUTH ──→ CLONE ──→ WORK ──→ SHIP ──→ DIE
+```
+
 | Step | What happens |
-|------|-------------|
-| **AUTH** | Connect GitHub and your AI agents. Credentials sync via a private `~/.spawn` repo. Runs **once**. |
-| **CLONE** | Paste any GitHub issue, PR, or branch URL. Spawn creates an isolated Docker container with deps from shared cache. Under 90 seconds. |
-| **WORK** | In `--auto` mode Claude Code or Codex reads the issue, writes code, runs tests. In `--ssh` mode you enter and work interactively. |
-| **SHIP** | Agent commits, pushes, opens a PR. Session logs upload to a private Gist with a link in the PR comment. Full audit trail. |
-| **DIE** | Container self-destructs. No leftover state. No drift. Next task gets a fresh spawn. |
+|:-----|:------------|
+| `AUTH` | Connect GitHub and your AI agents. Credentials sync via a private `~/.spawn` repo. Runs **once**. |
+| `CLONE` | Paste any GitHub issue, PR, or branch URL. Spawn creates an isolated Docker container with deps from shared cache. Under 90 seconds. |
+| `WORK` | In `--auto` mode Claude Code or Codex reads the issue, writes code, runs tests. In `--ssh` mode you enter and work interactively. |
+| `SHIP` | Agent commits, pushes, opens a PR. Session logs upload to a private Gist with a link in the PR comment. Full audit trail. |
+| `DIE` | Container self-destructs. No leftover state. No drift. Next task gets a fresh spawn. |
 
 ---
 
@@ -91,30 +83,24 @@ $ spawn clone github.com/org/crm/issues/42 --auto
 
 ## Features
 
-### Parallel Isolation
-Run issue-42 and issue-43 simultaneously. Separate containers, separate agents, zero interference. Share nothing except the package cache.
+**Parallel Isolation** — Run issue-42 and issue-43 simultaneously. Separate containers, separate agents, zero interference. Share nothing except the package cache.
 
-### Shared Credentials
-One auth config for all containers. No token rotation issues. Each project keeps its own session state while sharing the login.
+**Shared Credentials** — One auth config for all containers. No token rotation issues. Each project keeps its own session state while sharing the login.
 
-### Two AI Agents
-Claude Code and Codex pre-installed in every environment. `AGENTS.md` auto-loaded with issue context. They read the task. They know what to do.
+**Two AI Agents** — Claude Code and Codex pre-installed in every environment. `AGENTS.md` auto-loaded with issue context. They read the task. They know what to do.
 
-### Session Backup
-On every push, AI session logs auto-upload to a private GitHub Gist. A link is posted to the PR comment. Full audit trail of what the agent did.
+**Session Backup** — On every push, AI session logs auto-upload to a private GitHub Gist. A link is posted to the PR comment. Full audit trail.
 
-### Cloud State
-Your `~/.spawn` directory syncs to a private GitHub repo on auth. Switch machines. Restore everything. Never reconfigure.
+**Cloud State** — Your `~/.spawn` directory syncs to a private GitHub repo on auth. Switch machines. Restore everything. Never reconfigure.
 
-### Playwright MCP
-Optional Chromium sidecar. Claude Code gets full browser automation through MCP protocol. Agents that can see pages, click buttons, fill forms.
+**Playwright MCP** — Optional Chromium sidecar. Claude Code gets full browser automation through MCP protocol. Agents that can see pages, click buttons, fill forms.
 
 ---
 
 ## Commands
 
 | Command | Description |
-|---------|-------------|
+|:--------|:-----------|
 | `spawn auth github login` | Connect GitHub. Creates `~/.spawn` state repo. Runs once. |
 | `spawn auth claude login` | Authorize Claude Code. Shared across all containers. |
 | `spawn auth codex login` | Authorize Codex. Shared across all containers. |

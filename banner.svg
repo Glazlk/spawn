@@ -1,0 +1,77 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0D0C0A"/>
+      <stop offset="100%" stop-color="#141210"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="600" y1="0" x2="600" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E8521A" stop-opacity="0.06"/>
+      <stop offset="50%" stop-color="#E8521A" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#E8521A" stop-opacity="0.03"/>
+    </linearGradient>
+    <linearGradient id="line-fade" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2A2720" stop-opacity="0"/>
+      <stop offset="20%" stop-color="#2A2720" stop-opacity="1"/>
+      <stop offset="80%" stop-color="#2A2720" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#2A2720" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bg)"/>
+  <rect width="1200" height="400" fill="url(#glow)"/>
+
+  <!-- Subtle grid lines -->
+  <line x1="0" y1="1" x2="1200" y2="1" stroke="#2A2720" stroke-width="1"/>
+  <line x1="0" y1="399" x2="1200" y2="399" stroke="#2A2720" stroke-width="1"/>
+  <line x1="200" y1="0" x2="200" y2="400" stroke="#2A2720" stroke-opacity="0.3" stroke-width="0.5"/>
+  <line x1="1000" y1="0" x2="1000" y2="400" stroke="#2A2720" stroke-opacity="0.3" stroke-width="0.5"/>
+
+  <!-- Decorative corner marks -->
+  <path d="M24 24 L24 44" stroke="#2A2720" stroke-width="1"/>
+  <path d="M24 24 L44 24" stroke="#2A2720" stroke-width="1"/>
+  <path d="M1176 24 L1176 44" stroke="#2A2720" stroke-width="1"/>
+  <path d="M1176 24 L1156 24" stroke="#2A2720" stroke-width="1"/>
+  <path d="M24 376 L24 356" stroke="#2A2720" stroke-width="1"/>
+  <path d="M24 376 L44 376" stroke="#2A2720" stroke-width="1"/>
+  <path d="M1176 376 L1176 356" stroke="#2A2720" stroke-width="1"/>
+  <path d="M1176 376 L1156 376" stroke="#2A2720" stroke-width="1"/>
+
+  <!-- Chevron logo — large, left-offset -->
+  <g transform="translate(280, 100) scale(3.2)">
+    <path d="M8 11 L31 32 L8 53" stroke="#E8521A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M22 11 L45 32 L22 53" stroke="#E8521A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.38"/>
+    <path d="M36 17 L54 32 L36 47" stroke="#E8521A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+  </g>
+
+  <!-- SPAWN wordmark -->
+  <text x="520" y="225" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="96" font-weight="900" letter-spacing="16" fill="#F0EDE8">SP</text>
+  <text x="718" y="225" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="96" font-weight="900" letter-spacing="16" fill="#E8521A">A</text>
+  <text x="810" y="225" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="96" font-weight="900" letter-spacing="16" fill="#F0EDE8">WN</text>
+
+  <!-- Separator line -->
+  <line x1="520" y1="248" x2="1000" y2="248" stroke="url(#line-fade)" stroke-width="1"/>
+
+  <!-- Tagline -->
+  <text x="520" y="280" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="15" letter-spacing="3" fill="#9A9080">spawn(task)</text>
+  <text x="700" y="280" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="15" letter-spacing="1" fill="#E8521A"> → </text>
+  <text x="740" y="280" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="15" letter-spacing="3" fill="#9A9080">isolated env + AI agent</text>
+  <text x="1010" y="280" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="15" letter-spacing="1" fill="#E8521A"> → </text>
+  <text x="1050" y="280" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="15" letter-spacing="3" fill="#9A9080">PR</text>
+
+  <!-- Bottom subtitle -->
+  <text x="520" y="310" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="11" letter-spacing="5" fill="#2A2720">DON'T CONFIGURE. SPAWN.</text>
+
+  <!-- Version badge area -->
+  <rect x="520" y="335" width="80" height="24" rx="2" fill="#E8521A" fill-opacity="0.12" stroke="#E8521A" stroke-opacity="0.3" stroke-width="0.5"/>
+  <text x="536" y="351" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="10" letter-spacing="1" fill="#E8521A">CLI</text>
+
+  <rect x="612" y="335" width="100" height="24" rx="2" fill="none" stroke="#2A2720" stroke-width="0.5"/>
+  <text x="628" y="351" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="10" letter-spacing="1" fill="#9A9080">DOCKER</text>
+
+  <rect x="724" y="335" width="120" height="24" rx="2" fill="none" stroke="#2A2720" stroke-width="0.5"/>
+  <text x="740" y="351" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="10" letter-spacing="1" fill="#9A9080">AI AGENTS</text>
+
+  <rect x="856" y="335" width="140" height="24" rx="2" fill="none" stroke="#2A2720" stroke-width="0.5"/>
+  <text x="872" y="351" font-family="'Courier New', 'Lucida Console', 'Monaco', monospace" font-size="10" letter-spacing="1" fill="#9A9080">EFFECT-TS</text>
+</svg>
