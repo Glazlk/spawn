@@ -1,5 +1,12 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/logo.svg" width="280" alt="spawn" />
+  <img src="https://raw.githubusercontent.com/glazlk/spawn/main/logo.svg" width="140" alt="spawn" />
+</p>
+
+<h1 align="center">spawn</h1>
+
+<p align="center">
+  <strong>Disposable Docker dev environments with AI agents inside.</strong><br/>
+  One command. One container per task. PR opens itself.
 </p>
 
 <p align="center">
@@ -9,110 +16,228 @@
   <a href="https://github.com/glazlk/spawn/issues"><img src="https://img.shields.io/github/issues/glazlk/spawn?color=E8521A&labelColor=0D0C0A&style=flat-square" alt="issues" /></a>
 </p>
 
-<br/>
+<p align="center">
+  <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How It Works</a> · <a href="#commands">Commands</a> · <a href="#features">Features</a>
+</p>
 
-## What is spawn?
+---
 
-**spawn** creates a disposable Docker dev environment per GitHub issue, PR, or task. Each environment gets its own AI agent. Point. Spawn. Walk away.
-
-```
-spawn(task) → isolated container + AI agent → opens PR → container exits.
-```
-
-> Environments are **mortal**. Code is not.
+- ⚡ **One command** — paste a GitHub issue URL, get an isolated dev environment
+- 🤖 **AI agents inside** — Claude Code and Codex pre-installed, read the issue, write code, open PR
+- 🐳 **Disposable containers** — fresh environment per task, zero drift, self-destructs after PR
+- 🔑 **Auth once, use everywhere** — credentials sync via private `~/.spawn` repo across machines
+- 🧪 **Playwright MCP** — optional Chromium sidecar for browser automation via MCP protocol
+- 🔄 **Session backup** — AI session logs auto-upload to a private Gist, linked in PR comments
 
 ---
 
 ## Quickstart
 
 ```bash
-# 1. install & auth (once)
-npx @spawn-dev/spawn auth github login
-npx @spawn-dev/spawn auth claude login
-
-# 2. point at a task
-spawn clone https://github.com/org/repo/issues/42 --auto
-
-# 3. check your PRs
-# ✓ PR opened. Agent session saved. Done.
+npm i -g @spawn-dev/spawn
 ```
 
-> Requires Docker. Works on macOS, Linux, and WSL2.
+<details>
+<summary>Other install methods</summary>
+
+```bash
+# npx (no install)
+npx @spawn-dev/spawn --help
+
+# pnpm
+pnpm add -g @spawn-dev/spawn
+```
+
+</details>
+
+Authenticate once:
+
+```bash
+spawn auth github login --web     # GitHub (required)
+spawn auth claude login --web     # Claude Code
+spawn auth codex login --web      # Codex
+```
+
+Spawn your first task:
+
+```bash
+spawn clone https://github.com/org/repo/issues/42 --auto
+```
+
+The agent reads the issue, writes code, runs tests, opens a PR, and the container self-destructs. Done.
 
 ---
 
 ## How It Works
 
 ```
-AUTH ──→ CLONE ──→ WORK ──→ SHIP ──→ DIE
+  AUTH          CLONE          WORK          SHIP          DIE
+   │              │              │             │             │
+   ▼              ▼              ▼             ▼             ▼
+ Connect       Paste URL     Agent reads   Commits,      Container
+ GitHub +      → isolated    issue, codes  pushes, PR    destroyed.
+ AI keys       container     & runs tests  auto-opens    No state.
+ (once)        (< 90s)       (--auto)      + gist log    Clean.
 ```
 
-| Step | What happens |
-|:-----|:------------|
-| `AUTH` | Connect GitHub and your AI agents. Credentials sync via a private `~/.spawn` repo. Runs **once**. |
-| `CLONE` | Paste any GitHub issue, PR, or branch URL. Spawn creates an isolated Docker container with deps from shared cache. Under 90 seconds. |
-| `WORK` | In `--auto` mode Claude Code or Codex reads the issue, writes code, runs tests. In `--ssh` mode you enter and work interactively. |
-| `SHIP` | Agent commits, pushes, opens a PR. Session logs upload to a private Gist with a link in the PR comment. Full audit trail. |
-| `DIE` | Container self-destructs. No leftover state. No drift. Next task gets a fresh spawn. |
+**Interactive mode** — drop `--auto`, add `--ssh` to enter the container and work yourself:
 
----
-
-## Terminal Demo
-
+```bash
+spawn clone https://github.com/org/repo/issues/42 --ssh
 ```
-$ spawn auth github login --web
-  ✓ Authenticated as user
-
-$ spawn auth claude login
-  ✓ Claude Code ready
-
-$ spawn clone github.com/org/crm/issues/42 --auto
-  → Spawning issue-42...
-  → Image pull (cached)         0.3s
-  → pnpm install (cache hit)    1.1s
-  → Injecting Claude Code       0.1s
-  → Agent reading issue #42...
-  → Writing implementation...
-  → Running test suite...        pass
-  ✓ PR opened → github.com/org/crm/pull/87
-  ✓ Session log → gist.github.com/user/a3f...
-  → Container terminated.
-```
-
----
-
-## Features
-
-**Parallel Isolation** — Run issue-42 and issue-43 simultaneously. Separate containers, separate agents, zero interference. Share nothing except the package cache.
-
-**Shared Credentials** — One auth config for all containers. No token rotation issues. Each project keeps its own session state while sharing the login.
-
-**Two AI Agents** — Claude Code and Codex pre-installed in every environment. `AGENTS.md` auto-loaded with issue context. They read the task. They know what to do.
-
-**Session Backup** — On every push, AI session logs auto-upload to a private GitHub Gist. A link is posted to the PR comment. Full audit trail.
-
-**Cloud State** — Your `~/.spawn` directory syncs to a private GitHub repo on auth. Switch machines. Restore everything. Never reconfigure.
-
-**Playwright MCP** — Optional Chromium sidecar. Claude Code gets full browser automation through MCP protocol. Agents that can see pages, click buttons, fill forms.
 
 ---
 
 ## Commands
 
-| Command | Description |
-|:--------|:-----------|
-| `spawn auth github login` | Connect GitHub. Creates `~/.spawn` state repo. Runs once. |
-| `spawn auth claude login` | Authorize Claude Code. Shared across all containers. |
-| `spawn auth codex login` | Authorize Codex. Shared across all containers. |
-| `spawn clone <url>` | Spawn an isolated container for any GitHub issue, PR, or branch. |
-| `spawn clone <url> --auto` | Spawn, let the agent work, open PR, die. Zero babysitting. |
-| `spawn clone <url> --auto=claude` | Force Claude Code as the agent. |
-| `spawn clone <url> --auto=codex` | Force Codex as the agent. |
-| `spawn clone <url> --ssh` | Spawn and enter. Work interactively inside the container. |
-| `spawn clone <url> --mcp-playwright` | Include Chromium sidecar for browser automation. |
-| `spawn open <url>` | Re-enter an existing environment. |
-| `spawn list` | All live containers. What's running, what's done. |
-| `spawn status` | Current environment status. |
+### Core Workflow
+
+```bash
+# Spawn environment for any GitHub issue, PR, branch, or repo
+spawn clone <url>
+
+# Auto mode — agent works autonomously, opens PR, container dies
+spawn clone <url> --auto
+
+# Force specific agent
+spawn clone <url> --auto=claude
+spawn clone <url> --auto=codex
+
+# Interactive SSH into the container
+spawn clone <url> --ssh
+
+# Re-open an existing environment
+spawn open <url>
+
+# Interactive TUI menu (default when no args)
+spawn menu
+```
+
+### Auth Management
+
+```bash
+spawn auth github login --web        # OAuth web flow
+spawn auth github login --token PAT  # Personal access token
+spawn auth claude login --web        # Claude Code OAuth
+spawn auth codex login --web         # Codex auth
+spawn auth github status             # Check auth status
+spawn auth github logout             # Remove credentials
+
+# Multi-account support
+spawn auth github login --label work --web
+spawn auth github login --label personal --token ghp_...
+spawn clone <url> --git-token work
+```
+
+### Environment Management
+
+```bash
+# Show all spawn containers and their status
+spawn ps
+
+# Stop all running containers
+spawn down-all
+
+# List tmux panes inside a project
+spawn panes <url>
+
+# List/kill/tail terminal sessions inside a container
+spawn sessions list <url>
+spawn sessions kill <pid> <url>
+spawn sessions logs <pid> <url> --lines 500
+```
+
+### State Sync (across machines)
+
+```bash
+# Print current projects root (~/.spawn)
+spawn state path
+
+# Bind state dir to a private git repo
+spawn state init --repo-url https://github.com/you/spawn-state -b main
+
+# Sync state (commit + rebase + push)
+spawn state sync -m "update from laptop"
+
+# Manual operations
+spawn state status
+spawn state pull
+spawn state commit -m "save auth"
+spawn state push
+```
+
+### Advanced
+
+```bash
+# Generate environment without cloning (repo URL optional)
+spawn create --repo-url https://github.com/org/repo
+
+# Apply spawn config to existing project directory
+spawn apply
+
+# Enable Playwright + Chromium sidecar for an existing project
+spawn mcp-playwright <url>
+
+# Export/import session snapshots
+spawn scrap export <url>
+spawn scrap import <url> --archive ./snapshot
+```
+
+### Key Options
+
+| Flag | Description |
+|:-----|:-----------|
+| `--auto[=claude\|codex]` | Agent works autonomously; picks by available auth if no value |
+| `--ssh` | Enter the container interactively via SSH |
+| `--mcp-playwright` | Enable Playwright MCP + Chromium browser sidecar |
+| `--force` | Wipe existing environment and recreate from scratch |
+| `--force-env` | Reset project env defaults only (keep workspace data) |
+| `--repo-ref <ref>`, `-b <ref>` | Git branch/ref (default: `main`) |
+| `--cpu <value>` | CPU limit: `30%` or `1.5` cores (default: `30%`) |
+| `--ram <value>` | RAM limit: `30%`, `512m`, `4g` (default: `30%`) |
+| `--network-mode <mode>` | `shared` or `project` network (default: `shared`) |
+| `--git-token <label>` | Use named GitHub token for multi-account setups |
+| `--out-dir <path>` | Custom output directory for the project |
+
+---
+
+## Features
+
+### Parallel Isolation
+
+Run issue-42 and issue-43 simultaneously. Separate containers, separate agents, zero interference. Shared package cache (pnpm/npm/yarn) keeps installs fast.
+
+### Two AI Agents
+
+Claude Code and Codex pre-installed in every container. `AGENTS.md` auto-loaded with issue context. In `--auto` mode the agent reads the task, writes implementation, runs tests, and opens a PR.
+
+### Shared Credentials
+
+One auth config for all containers. Multi-account support via `--label`. Each project keeps its own session state while sharing the login. Credentials stored in `~/.spawn` and optionally synced to a private GitHub repo.
+
+### Session Backup
+
+On every `git push` inside a container, AI session logs auto-upload to a private GitHub Gist. A link lands in the PR comment — full audit trail of what the agent did.
+
+### Cloud State
+
+`spawn state sync` backs up your `~/.spawn` directory to a private GitHub repo. Switch machines, run `spawn state pull`, and everything is restored.
+
+### Playwright MCP
+
+Optional Chromium sidecar via `--mcp-playwright`. Claude Code gets full browser automation through MCP protocol — navigate pages, click buttons, fill forms, take screenshots.
+
+### Container Runtime Env
+
+Fine-tune behavior via `.orch/env/project.env`:
+
+```bash
+CODEX_SHARE_AUTH=1                        # Share Codex auth across projects
+CODEX_AUTO_UPDATE=1                       # Auto-update Codex on start
+CLAUDE_AUTO_SYSTEM_PROMPT=1               # Auto-attach system prompt to Claude
+SPAWN_ZSH_AUTOSUGGEST=1                  # Enable zsh-autosuggestions
+MCP_PLAYWRIGHT_ISOLATED=1                 # Isolated browser contexts
+```
 
 ---
 
@@ -120,7 +245,7 @@ $ spawn clone github.com/org/crm/issues/42 --auto
 
 - Docker Engine or Docker Desktop
 - Docker accessible without `sudo`
-- Node.js ≥ 18 and `npm`
+- Node.js >= 18
 
 ## Development
 
@@ -129,6 +254,7 @@ git clone https://github.com/glazlk/spawn
 cd spawn
 pnpm install
 pnpm run spawn --help
+pnpm test
 ```
 
 ## Contributing
@@ -138,9 +264,3 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 ISC
-
----
-
-<p align="center">
-  <code>spawn(task) → PR. always.</code>
-</p>
